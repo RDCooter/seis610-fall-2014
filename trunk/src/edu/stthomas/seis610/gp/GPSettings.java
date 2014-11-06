@@ -26,7 +26,6 @@ public class GPSettings extends Properties {
 	private static GPSettings xSingletonInstance = null;
 	private static final long serialVersionUID = 1L;
 	private static final String xInitialPropertiesFile = "init.gp.properties";
-	private static final String xOutputPropertiesFile = "consumed.gp.properties";
 	private static OutputStream xOutputStream;
 
 	private Random xRandomGenerator;
@@ -70,15 +69,19 @@ public class GPSettings extends Properties {
 		try {
 			InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(xInitialPropertiesFile);
 			load(inputStream);
-		    inputStream.close();
+			inputStream.close();
 		} catch (IOException | NullPointerException e) {
 			System.err.println("IOException: Unable to load initial properties file [" + xInitialPropertiesFile
 					+ "] for GPSettings.");
 		}
 
 		// Construct the Random Number Generator to use for the GP algorithm. Seed the random generator with value
-		// extracted from the properties file.
-		xRandomGenerator = new Random(getRandomSeed());
+		// extracted from the properties file as long as the seed value exists within the properties.
+		xRandomGenerator = new Random();
+		Long randomSeed = getRandomSeed();
+		if (randomSeed != null) {
+			xRandomGenerator.setSeed(randomSeed);
+		}
 
 		// Construct the vector stubs for the operators and the operands that will be populated later.
 		xOperators = new Vector<String>();
@@ -163,6 +166,13 @@ public class GPSettings extends Properties {
 	}
 
 	/**
+	 * @param aOperatorValue the operator value to add to the operator property
+	 */
+	public static void setOperators(String aOperatorValue) {
+		getInstance().setOperatorProperty(aOperatorValue);
+	}
+
+	/**
 	 * @return the comma separated string of valid operators for the GP trees
 	 */
 	public static String getOperandsString() {
@@ -176,30 +186,28 @@ public class GPSettings extends Properties {
 		return getInstance().getOperandsProperty();
 	}
 
-	// TODO: Finish this by adding a setOperatorProperty() that will perform the add/contains on the vector and also
-	// still update the properties file.
-//	public void setOperators(Vector<String> inOperators) {
-//		operators = inOperators;
-//	}
-
-	// TODO: Finish this by adding a setOperandProperty() that will perform the add/contains on the vector and also
-	// still update the properties file.
-//	public void setOperands(Vector<String> inOperands) {
-//		operands = inOperands;
-//	}
+	/**
+	 * @param aOperandValue the operand value to add to the operand property
+	 */
+	public static void setOperands(String aOperandValue) {
+		getInstance().setOperandProperty(aOperandValue);
+	}
 
 	/**
 	 * @return the initial random seed value for GP algorithms
 	 */
-	private Integer getRandomSeed() {
-		return getIntProperty(_RANDOM_SEED, _DEFAULT_RANDOM_SEED);
+	private Long getRandomSeed() {
+		return getLongProperty(_RANDOM_SEED, _DEFAULT_RANDOM_SEED);
 	}
 
 	/**
 	 * @param aRandomSeedValue the new random seed value for this property
 	 */
-	public static void setRandomSeed(Integer aRandomSeedValue) {
-		setIntProperty(_RANDOM_SEED, aRandomSeedValue);
+	public static void setRandomSeed(Long aRandomSeedValue) {
+		// Make sure that we update the already instantiated random number generator with the new seed value along with
+		// updating the property settings.
+		getInstance().xRandomGenerator.setSeed(aRandomSeedValue);
+		setLongProperty(_RANDOM_SEED, aRandomSeedValue);
 	}
 
 	/**
@@ -275,31 +283,6 @@ public class GPSettings extends Properties {
 
 	/**
 	 * @param aKey the property name (key) to lookup for the property
-	 * @return the logical (boolean) value of the property
-	 */
-	private boolean getBooleanProperty(String aKey) {
-		return getBooleanProperty(aKey, null);
-	}
-
-	/**
-	 * @param aKey the property name (key) to lookup for the property
-	 * @param aDefaultValue the default value to use if no property exists
-	 * @return the logical (boolean) value of the property
-	 */
-	private boolean getBooleanProperty(String aKey, String aDefaultValue) {
-		return Boolean.parseBoolean(getProperty(aKey, aDefaultValue));
-	}
-
-	/**
-	 * @param aKey the property name (key) to lookup for the property
-	 * @return the numeric (integer) value of the property
-	 */
-	private int getIntProperty(String aKey) {
-		return getIntProperty(aKey, null);
-	}
-
-	/**
-	 * @param aKey the property name (key) to lookup for the property
 	 * @param aDefaultValue the default value to use if no property exists
 	 * @return the numeric (integer) value of the property
 	 */
@@ -309,27 +292,11 @@ public class GPSettings extends Properties {
 
 	/**
 	 * @param aKey the property name (key) to lookup for the property
-	 * @return the big numeric (long integer) value of the property
-	 */
-	private long getLongProperty(String aKey) {
-		return getLongProperty(aKey, null);
-	}
-
-	/**
-	 * @param aKey the property name (key) to lookup for the property
 	 * @param aDefaultValue the default value to use if no property exists
 	 * @return the big numeric (long integer) value of the property
 	 */
 	private long getLongProperty(String aKey, String aDefaultValue) {
 		return Long.parseLong(getProperty(aKey, aDefaultValue));
-	}
-
-	/**
-	 * @param aKey the property name (key) to lookup for the property
-	 * @return the floating point (double) value of the property
-	 */
-	private double getDoubleProperty(String aKey) {
-		return getDoubleProperty(aKey, null);
 	}
 
 	/**
@@ -345,7 +312,7 @@ public class GPSettings extends Properties {
 	 * @return the list of valid operators for the property
 	 */
 	private Vector<String> getOperatorsProperty() {
-		
+
 		if (xOperators.isEmpty()) {
 			for (String operatorToken : GPSettings.getOperatorString().split(",")) {
 				xOperators.add(operatorToken.trim());
@@ -377,9 +344,9 @@ public class GPSettings extends Properties {
 	private static void setIntProperty(String aKey, Integer aValue) {
 		try {
 			try {
-				xOutputStream = new FileOutputStream(new File(xOutputPropertiesFile));
+				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));
 			} catch (IOException e) {
-				System.err.println("IOException: Unable to open output properties file [" + xOutputPropertiesFile
+				System.err.println("IOException: Unable to open output properties file [" + xInitialPropertiesFile
 						+ "] for GPSettings.");
 			}
 
@@ -393,8 +360,40 @@ public class GPSettings extends Properties {
 
 			xOutputStream.close();
 		} catch (IOException e) {
-			System.err.println("IOException: Unable to store " + aKey + "=" + aValue
-					+ " into the output properties file [" + xOutputPropertiesFile + "].");
+			System.err.println("IOException: Unable to store " + aKey + "=" + aValue + " into the properties file ["
+					+ xInitialPropertiesFile + "].");
+		}
+	}
+
+	/**
+	 * Update the properties object with the new value for the passed in property. Additionally continuously update the
+	 * output properties file with the current settings for ALL of the current properties that are being used within
+	 * this properties object.
+	 * 
+	 * @param aKey the property name (key) to update in the properties object/file
+	 * @param aValue the numeric (long integer) value for this property
+	 */
+	private static void setLongProperty(String aKey, Long aValue) {
+		try {
+			try {
+				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));
+			} catch (IOException e) {
+				System.err.println("IOException: Unable to open output properties file [" + xInitialPropertiesFile
+						+ "] for GPSettings.");
+			}
+
+			/*
+			 * Update the singleton properties object with the new value for the key and re-write all of the current
+			 * properties into the output properties file so that it will always show the current state of the
+			 * properties (if not simply the defaults).
+			 */
+			getInstance().setProperty(aKey, "" + aValue);
+			getInstance().store(xOutputStream, null);
+
+			xOutputStream.close();
+		} catch (IOException e) {
+			System.err.println("IOException: Unable to store " + aKey + "=" + aValue + " into the properties file ["
+					+ xInitialPropertiesFile + "].");
 		}
 	}
 
@@ -409,9 +408,9 @@ public class GPSettings extends Properties {
 	private static void setDoubleProperty(String aKey, Double aValue) {
 		try {
 			try {
-				xOutputStream = new FileOutputStream(new File(xOutputPropertiesFile));
+				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));
 			} catch (IOException e) {
-				System.err.println("IOException: Unable to open output properties file [" + xOutputPropertiesFile
+				System.err.println("IOException: Unable to open output properties file [" + xInitialPropertiesFile
 						+ "] for GPSettings.");
 			}
 
@@ -425,8 +424,126 @@ public class GPSettings extends Properties {
 
 			xOutputStream.close();
 		} catch (IOException e) {
-			System.err.println("IOException: Unable to store " + aKey + "=" + aValue
-					+ " into the output properties file [" + xOutputPropertiesFile + "].");
+			System.err.println("IOException: Unable to store " + aKey + "=" + aValue + " into the properties file ["
+					+ xInitialPropertiesFile + "].");
 		}
+	}
+
+	/**
+	 * Update the properties object with the new value for the operator property. Additionally continuously update the
+	 * output properties file with the current settings for ALL of the current properties that are being used within
+	 * this properties object.
+	 * 
+	 * @param aOperatorValue the operator value to add to the operator property
+	 */
+	private void setOperatorProperty(String aOperatorValue) {
+		try {
+			try {
+				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));
+			} catch (IOException e) {
+				System.err.println("IOException: Unable to open output properties file [" + xInitialPropertiesFile
+						+ "] for GPSettings.");
+			}
+
+			/*
+			 * Since we are dealing with a vector, make sure that we don't simply append on a new (duplicate) value onto
+			 * the end of the array. First remove the operator if it exists before adding the operator to the end of the
+			 * existing array.
+			 */
+			if (xOperators.contains(aOperatorValue)) {
+				xOperators.remove(aOperatorValue);
+			}
+			xOperators.add(aOperatorValue);
+
+			/*
+			 * Generate a new comma separated string of all of the allowed operators stored in the vector so that we can
+			 * set it back into the properties file.
+			 */
+			String compositeOperators = xOperators.firstElement();
+			for (int i = 1; i < xOperators.size(); i++) {
+				compositeOperators = compositeOperators + "," + xOperators.get(i);
+			}
+
+			/*
+			 * Update the singleton properties object with the new value for the key and re-write all of the current
+			 * properties into the output properties file so that it will always show the current state of the
+			 * properties (if not simply the defaults).
+			 */
+			getInstance().setProperty(_OPERATORS, compositeOperators);
+			getInstance().store(xOutputStream, null);
+
+			xOutputStream.close();
+		} catch (IOException e) {
+			System.err.println("IOException: Unable to store " + aOperatorValue + " into the " + _OPERATORS
+					+ " in the properties file [" + xInitialPropertiesFile + "].");
+		}
+	}
+
+	/**
+	 * Update the properties object with the new value for the operand property. Additionally continuously update the
+	 * output properties file with the current settings for ALL of the current properties that are being used within
+	 * this properties object.
+	 * 
+	 * @param aOperandValue the operand value to add to the operand property
+	 */
+	private void setOperandProperty(String aOperandValue) {
+		try {
+			try {
+				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));
+			} catch (IOException e) {
+				System.err.println("IOException: Unable to open output properties file [" + xInitialPropertiesFile
+						+ "] for GPSettings.");
+			}
+
+			/*
+			 * Since we are dealing with a vector, make sure that we don't simply append on a new (duplicate) value onto
+			 * the end of the array. First remove the operand if it exists before adding the operand to the end of the
+			 * existing array.
+			 */
+			if (xOperands.contains(aOperandValue)) {
+				xOperands.remove(aOperandValue);
+			}
+			xOperands.add(aOperandValue);
+
+			/*
+			 * Generate a new comma separated string of all of the allowed operands stored in the vector so that we can
+			 * set it back into the properties file.
+			 */
+			String compositeOperands = xOperands.firstElement();
+			for (int i = 1; i < xOperands.size(); i++) {
+				compositeOperands = compositeOperands + "," + xOperands.get(i);
+			}
+
+			/*
+			 * Update the singleton properties object with the new value for the key and re-write all of the current
+			 * properties into the output properties file so that it will always show the current state of the
+			 * properties (if not simply the defaults).
+			 */
+			getInstance().setProperty(_OPERANDS, compositeOperands);
+			getInstance().store(xOutputStream, null);
+
+			xOutputStream.close();
+		} catch (IOException e) {
+			System.err.println("IOException: Unable to store " + aOperandValue + " into the " + _OPERANDS
+					+ " in the properties file [" + xInitialPropertiesFile + "].");
+		}
+	}
+
+	@Override
+	public String toString() {
+		// Display all of the properties within the settings in a Key=Value format.
+		System.out.println("GPSettings [");
+		System.out.println("   Instance Variables:");
+		System.out.println("  =====================");
+		System.out.println("     xOperators=" + xOperators);
+		System.out.println("     xOperands=" + xOperands);
+		System.out.println("   Properties:");
+		System.out.println("  =====================");
+		for (String propertyKey : stringPropertyNames()) {
+			String propertyValue = getProperty(propertyKey);
+			System.out.println("     " + propertyKey + "=" + propertyValue);
+		}
+		System.out.println("]");
+		return "";
 	}
 }
