@@ -7,9 +7,17 @@ package edu.stthomas.seis610.tree;
 public class BinaryTree {
 
 	protected BinaryTreeNode root=new BinaryTreeNode();
+	private static Boolean isvalidbtree;
 	
 	
-	
+	public static Boolean getIsvalidbtree() {
+		return isvalidbtree;
+	}
+
+	public static void setIsvalidbtree(Boolean isvalidbtree1) {
+		isvalidbtree = isvalidbtree1;
+	}
+
 	// ESCA-JAVA0117:
 	public void setTree(BinaryTree aTree) {
 		
@@ -64,8 +72,9 @@ public class BinaryTree {
 	}
 	
 	public Double evaluate(Double inputValue) {
-	
-		return this.root.evaluateOutput(inputValue);
+		double i=this.root.evaluateOutput(inputValue);
+		isvalidbtree=BinaryTreeNode.isIsvalidtreenode();
+		return i;
 		
 	}
 

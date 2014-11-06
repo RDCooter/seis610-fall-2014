@@ -9,7 +9,15 @@ public class BinaryTreeNode {
 	private BinaryTreeNode leftChild;
 	private BinaryTreeNode rightChild;
 	private String data;
+	private static boolean isvalidtreenode;
 
+	public static boolean isIsvalidtreenode() {
+		return isvalidtreenode;
+	}
+
+	public static void setIsvalidtreenode(boolean isvalidtreenode) {
+		BinaryTreeNode.isvalidtreenode = isvalidtreenode;
+	}
 
 	public BinaryTreeNode() {
 
@@ -196,6 +204,7 @@ public class BinaryTreeNode {
 		if (this.getData().equals(divide) && rightTreeValue!=0) {
 			return leftTreeValue/rightTreeValue;
 		} else {
+			BinaryTreeNode.isvalidtreenode=false;
 			return 0.0;
 		}
 	

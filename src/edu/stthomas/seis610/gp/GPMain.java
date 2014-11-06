@@ -3,6 +3,7 @@ package edu.stthomas.seis610.gp;
 import java.util.Collections;
 import java.util.Vector;
 
+import edu.stthomas.seis610.tree.BinaryTree;
 import edu.stthomas.seis610.tree.BinaryTreeNode;
 import edu.stthomas.seis610.tree.GeneticProgrammingTree;
 
@@ -38,6 +39,7 @@ class GPMain extends java.lang.Thread {
 		    
 	}
 	
+	@SuppressWarnings({ "static-access" })
 	public void run() { 
 		
 		Vector<TrainingData> TrainingDataSet=new Vector<TrainingData>();
@@ -47,6 +49,7 @@ class GPMain extends java.lang.Thread {
 			new Vector<GeneticProgrammingTree>();
 		Vector<Double> Fitness=new Vector<Double>();
 		Integer generationCount=0;
+		Vector <Boolean> valid= new Vector<Boolean>();
 		
 
 		//Create the Training Data Set
@@ -66,13 +69,20 @@ class GPMain extends java.lang.Thread {
 		Double minFitness=GPSettings.getFitnessMarginOfError()+1;
 		
 		//while (!Stop) {    // continue until asked to stop
-			
+
+		for (int i=0;i<GPSettings.getPopulationSize();i++) {
+			valid.add(i, true);
+		}
 			//System.out.println("Value of Stop: "+Stop);
-			while ((minFitness>GPSettings.getFitnessMarginOfError()) && !Stop) {
+			while (!Stop) {
 				
 				generationCount++;
 				//Compute the fitness of the Initial Population
 				for (int i=0;i<GPSettings.getPopulationSize();i++) {
+					valid.set(i, true);
+					BinaryTree.setIsvalidbtree(true);
+					BinaryTreeNode.setIsvalidtreenode(true);
+					
 					Double iFitness=0.0;
 					for (int j=0;j<GPSettings.getTrainingDataSize();j++) {
 						Double iOutput=InitPopulation.elementAt(i).evaluate(
@@ -81,6 +91,11 @@ class GPMain extends java.lang.Thread {
 								TrainingDataSet.elementAt(j).getOutputData());
 						iFitness+=jDelta;
 					}
+					if(InitPopulation.elementAt(i).getIsvalidbtree()==false)
+					{
+						valid.set(i, false);
+					}
+					
 					Fitness.add(i, iFitness);
 				}
 				minFitness=Collections.min(Fitness);
@@ -90,6 +105,18 @@ class GPMain extends java.lang.Thread {
 				System.out.println("Generation: "+generationCount);
 				System.out.println("Ht: "+InitPopulation.elementAt(minIdxx).getHeight());
 				InitPopulation.elementAt(minIdxx).getRootNode().printInOrder();
+				System.out.println("\nbinarytree valid or not: "+valid.elementAt(minIdxx));
+
+					
+				if (minFitness<GPSettings.getFitnessMarginOfError())
+				{
+					if(valid.elementAt(minIdxx)!=false)
+					{
+						Stop =true;
+						break;		
+					}
+						
+				}
 				
 				Double numFitMembers=
 						GPSettings.getPopulationSize()*GPSettings.getFitnessProbability();
