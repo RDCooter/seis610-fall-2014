@@ -1,83 +1,182 @@
-/**
- * 
- */
 package edu.stthomas.seis610.tree;
 
+import java.util.LinkedList;
+import java.util.List;
 
-public class BinaryTree {
+import edu.stthomas.seis610.util.GPException;
 
-	protected BinaryTreeNode root=new BinaryTreeNode();
-	private static Boolean isvalidbtree;
-	
-	
-	public static Boolean getIsvalidbtree() {
-		return isvalidbtree;
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+/**
+ * The Binary Tree class defines the structure that contains the expression tree that represents the function and is
+ * used by the GP.
+ * 
+ * @author Pravesh Tamraker Oct 19, 2014 4:11:18 PM
+ * @author Robert Driesch (cooter) Nov 7, 2014 2:25:18 PM
+ * @version 1.2
+ */
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+public class BinaryTree implements Cloneable {
+	protected BinaryTreeNode xRoot;
+
+	/**
+	 * Default constructor for this class.
+	 */
+	public BinaryTree() {
 	}
 
-	public static void setIsvalidbtree(Boolean isvalidbtree1) {
-		isvalidbtree = isvalidbtree1;
+	/**
+	 * @param aNode the node that represents the root of the expression tree
+	 */
+	public BinaryTree(BinaryTreeNode aNode) {
+		setRoot(aNode);
 	}
 
-	// ESCA-JAVA0117:
-	public void setTree(BinaryTree aTree) {
-		
-		this.root = aTree.root;
-		
+	/**
+	 * @returns the root node in the binary tree for the expression
+	 */
+	public BinaryTreeNode getRoot() {
+		return xRoot;
 	}
 
-	public void buildTree(BinaryTreeNode aNode) {
-		
-		if (aNode.hasLeftChild()) {
-			BinaryTreeNode leftNode=new BinaryTreeNode(aNode.getLeftChild());
-			this.buildTree(leftNode);
-		}
-		
-		
+	/**
+	 * @param aNode the node that represents the root of the expression tree
+	 */
+	public void setRoot(BinaryTreeNode aNode) {
+		this.xRoot = aNode;
 	}
-	
-	public boolean isEmpty() {
-		
-		return (root == null);
-		
+
+	/**
+	 * @returns the indicator if the expressions within the node tree are valid
+	 */
+	public Boolean isTreeValid() {
+		return xRoot.isTreeNodeValid();
 	}
-	
-	public void setRootData(String aData) {
-		
-		this.root.setData(aData);
-		
-	}
-	
-	public void setRootNode(BinaryTreeNode rootNode) {
-		
-		this.root = rootNode;
-		
-	}
-	
-	public BinaryTreeNode getRootNode() {
-		
-		return this.root;
-		
-	}
-	
-	public Integer getNumberOfNodes() {
-		
-		return root.getNumberOfNodes();
-		
-	}
-	
+
+	/**
+	 * @returns an integer count of the height of the subtree
+	 */
 	public Integer getHeight() {
-		
-		return root.getHeight();
-		
+		return xRoot.getHeight();
 	}
-	
+
+	/**
+	 * A recursive way to evaluate the function represented by this tree.
+	 * 
+	 * @param input The input value
+	 * @returns the evaluated result of the expression based upon the passed in input value
+	 * @throws GPException
+	 */
 	public Double evaluate(Double inputValue) {
-		double i=this.root.evaluateOutput(inputValue);
-		isvalidbtree=BinaryTreeNode.isIsvalidtreenode();
-		return i;
-		
+		Double result = Double.MAX_VALUE;
+		try {
+			result = xRoot.evaluateOutput(inputValue);
+		} catch (GPException e) {
+			System.out.println("ERROR: <BinaryTree::evaluate>  x=" + inputValue + "  BinaryTreeNode=" + this.toString());
+			e.printStackTrace();
+		} 
+		return result;
 	}
 
-	
-}
+	/**
+	 * Recursive method to format and output the expression tree in "in-order" notation with appropriate parenthesis
+	 * added.
+	 * 
+	 * @param aNode the current node within the expression tree
+	 * @returns a string representation of the nodes in the expression tree
+	 */
+	private String toString(BinaryTreeNode aNode) {
+		StringBuffer output;
+		if (aNode instanceof OperandNode) {
+			return aNode.toString();
+		} else {
+			output = new StringBuffer();
+			if (aNode != getRoot())
+				output.append("(");
+			output.append(this.toString(aNode.getLeftChild()));
+			output.append(aNode.toString());
+			output.append(this.toString(aNode.getRightChild()));
+			if (aNode != getRoot())
+				output.append(")");
+		}
 
+		return output.toString();
+	}
+
+	/**
+	 * @returns a list of the nodes in the expression tree in "post-order"
+	 */
+	public List<BinaryTreeNode> getPostOrderList() {
+		return getPostOrderList(getRoot());
+	}
+
+	/**
+	 * Recursive method to extract all of the nodes within the expression tree and return them in a linked list in
+	 * post-order notation.
+	 * 
+	 * @param aNode the current node within the expression tree
+	 * @returns a list of the nodes in the expression tree in "post-order"
+	 */
+	private LinkedList<BinaryTreeNode> getPostOrderList(BinaryTreeNode aNode) {
+		if (aNode == null) {
+			return null;
+		} else {
+			LinkedList<BinaryTreeNode> postOrderList = new LinkedList<BinaryTreeNode>();
+			if (aNode.hasLeftChild()) {
+				postOrderList.addAll(getPostOrderList(aNode.getLeftChild()));
+			}
+			if (aNode.hasRightChild()) {
+				postOrderList.addAll(getPostOrderList(aNode.getRightChild()));
+			}
+			postOrderList.add(aNode);
+			return postOrderList;
+		}
+	}
+
+	/**
+	 * @returns a list of the nodes in the expression tree in "in-order"
+	 */
+	public List<BinaryTreeNode> getInOrderList() {
+		return getInOrderList(getRoot());
+	}
+
+	/**
+	 * Recursive method to extract all of the nodes within the expression tree and return them in a linked list in
+	 * in-order notation.
+	 * 
+	 * @param aNode the current node within the expression tree
+	 * @returns a list of the nodes in the expression tree in "in-order"
+	 */
+	private LinkedList<BinaryTreeNode> getInOrderList(BinaryTreeNode aNode) {
+		if (aNode == null) {
+			return null;
+		} else {
+			LinkedList<BinaryTreeNode> inOrderList = new LinkedList<BinaryTreeNode>();
+			if (aNode.hasLeftChild()) {
+				inOrderList.addAll(getInOrderList(aNode.getLeftChild()));
+			}
+			inOrderList.add(aNode);
+			if (aNode.hasRightChild()) {
+				inOrderList.addAll(getInOrderList(aNode.getRightChild()));
+			}
+			return inOrderList;
+		}
+	}
+
+	@Override
+	public Object clone() {
+		BinaryTree newTree = null;
+		try {
+			newTree = (BinaryTree) super.clone();
+			newTree.setRoot((BinaryTreeNode) getRoot().clone());
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+
+		return newTree;
+	}
+
+	@Override
+	public String toString() {
+		return toString(getRoot());
+	}
+}
