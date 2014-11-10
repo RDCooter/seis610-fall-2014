@@ -9,19 +9,21 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
+import edu.stthomas.seis610.tree.GPTreeFactory.GenerationMethod;
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 /**
  * The Settings class defines the interface to the user specified settings that will be used to control the operations
  * within the Genetic Programming application.
  * 
  * @author Pravesh Tamraker Oct 19, 2014 4:11:18 PM
- * @author Robert Driesch Nov 4, 2014 2:25:18 PM
+ * @author Robert Driesch	cooter		Nov 4, 2014 2:25:18 PM
  */
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 public class GPSettings extends Properties {
 
 	/**
-	 * Define a private variable for the Singleton Instance of this class.
+	 * Define private variables for the Singleton Instance of this class.
 	 */
 	private static GPSettings xSingletonInstance = null;
 	private static final long serialVersionUID = 1L;
@@ -31,36 +33,39 @@ public class GPSettings extends Properties {
 	private Random xRandomGenerator;
 	private Vector<String> xOperators;
 	private Vector<String> xOperands;
+	private Vector<TrainingData> xTrainingData;
 
 	/**
 	 * Define Constants for the Property Names for the different Settings
 	 */
-	private final static String _RANDOM_SEED = new String("randomSeed");
-	private final static String _MUTATION_PROBABILITY = new String("mutationProbability");
-	private final static String _FITNESS_PROBABILITY = new String("fitnessProbability");
-	private final static String _FITNESS_MARGIN_ERROR = new String("fitnessMarginOfError");
-	private final static String _OPERATORS = new String("operators");
-	private final static String _OPERANDS = new String("operands");
-	private final static String _CROSSOVER_SIZE = new String("numberOfCrossOvers");
-	private final static String _POPULATION_SIZE = new String("populationSize");
-	private final static String _TRAINING_DATA_SIZE = new String("trainingDataSize");
-	private final static String _SUBTREE_HEIGHT = new String("maxSubtreeHeight");
-	private final static String _CROSSOVER_SUBTREE_HEIGHT = new String("maxCrossoverSubtreeHeight");
+	public final static String _RANDOM_SEED = new String("randomSeed");
+	public final static String _MUTATION_PROBABILITY = new String("mutationProbability");
+	public final static String _FITNESS_PROBABILITY = new String("fitnessProbability");
+	public final static String _FITNESS_MARGIN_ERROR = new String("fitnessMarginOfError");
+	public final static String _OPERATORS = new String("operators");
+	public final static String _OPERANDS = new String("operands");
+	public final static String _CROSSOVER_SIZE = new String("numberOfCrossOvers");
+	public final static String _POPULATION_SIZE = new String("populationSize");
+	public final static String _SUBTREE_HEIGHT = new String("maxSubtreeHeight");
+	public final static String _CROSSOVER_SUBTREE_HEIGHT = new String("maxCrossoverSubtreeHeight");
+	public final static String _GENERATION_METHOD = new String("treeGenerationMethod");
+	public final static String _INPUT_TRAINING_DATA = new String("trainingDataInput");
 
 	/**
 	 * Define Default (Constant) Values for the Settings
 	 */
-	private final static String _DEFAULT_RANDOM_SEED = new String("12345");
-	private final static String _DEFAULT_MUTATION_PROBABILITY = new String("0.70");
-	private final static String _DEFAULT_FITNESS_PROBABILITY = new String("0.50");
-	private final static String _DEFAULT_FITNESS_MARGIN_ERROR = new String("0.01");
-	private final static String _DEFAULT_OPERATORS = new String("+,-,*,/");
-	private final static String _DEFAULT_OPERANDS = new String("0,1,2,3,4,5,6,7,8,9,x");
-	private final static Integer _DEFAULT_CROSSOVER_RATIO = new Integer(4);
-	private final static String _DEFAULT_MAX_POPULATION_SIZE = new String("100");
-	private final static String _DEFAULT_MAX_TRAINING_DATA_SIZE = new String("10");
-	private final static String _DEFAULT_MAX_SUBTREE_HEIGHT = new String("4");
-	private final static String _DEFAULT_MAX_CROSSOVER_HEIGHT = new String("20");
+	public final static String _DEFAULT_RANDOM_SEED = new String("12345");
+	public final static String _DEFAULT_MUTATION_PROBABILITY = new String("0.70");
+	public final static String _DEFAULT_FITNESS_PROBABILITY = new String("0.50");
+	public final static String _DEFAULT_FITNESS_MARGIN_ERROR = new String("0.01");
+	public final static String _DEFAULT_OPERATORS = new String("ADD,SUB,MUL,DIV");
+	public final static String _DEFAULT_OPERANDS = new String("-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,x");
+	public final static Integer _DEFAULT_CROSSOVER_RATIO = new Integer(4);
+	public final static String _DEFAULT_MAX_POPULATION_SIZE = new String("100");
+	public final static String _DEFAULT_MAX_SUBTREE_HEIGHT = new String("4");
+	public final static String _DEFAULT_MAX_CROSSOVER_HEIGHT = new String("10");
+	public final static String _DEFAULT_GENERATION_METHOD = new String("FULL");
+	public final static String _DEFAULT_INPUT_TRAINING_DATA = new String("-5,-4,-3,-2,-1,0,1,2,3,4,5");
 
 	/**
 	 * Private default constructor for singleton instance of this class.
@@ -86,6 +91,9 @@ public class GPSettings extends Properties {
 		// Construct the vector stubs for the operators and the operands that will be populated later.
 		xOperators = new Vector<String>();
 		xOperands = new Vector<String>();
+
+		// Construct the vector stub for the training data that will be populated later.
+		xTrainingData = new Vector<TrainingData>();
 	}
 
 	/**
@@ -168,7 +176,7 @@ public class GPSettings extends Properties {
 	/**
 	 * @param aOperatorValue the operator value to add to the operator property
 	 */
-	public static void setOperators(String aOperatorValue) {
+	public static void addOperators(String aOperatorValue) {
 		getInstance().setOperatorProperty(aOperatorValue);
 	}
 
@@ -189,7 +197,7 @@ public class GPSettings extends Properties {
 	/**
 	 * @param aOperandValue the operand value to add to the operand property
 	 */
-	public static void setOperands(String aOperandValue) {
+	public static void addOperands(String aOperandValue) {
 		getInstance().setOperandProperty(aOperandValue);
 	}
 
@@ -240,20 +248,6 @@ public class GPSettings extends Properties {
 	}
 
 	/**
-	 * @return the initial training data size for the GP algorithms
-	 */
-	public static Integer getTrainingDataSize() {
-		return getInstance().getIntProperty(_TRAINING_DATA_SIZE, _DEFAULT_MAX_TRAINING_DATA_SIZE);
-	}
-
-	/**
-	 * @param aTrainingDataSize the new training data size value for this property
-	 */
-	public static void setTrainingDataSize(Integer aTrainingDataSize) {
-		setIntProperty(_TRAINING_DATA_SIZE, aTrainingDataSize);
-	}
-
-	/**
 	 * @return the initial max height of a subtree for new GP trees
 	 */
 	public static Integer getMaxHtOfInitTree() {
@@ -279,6 +273,42 @@ public class GPSettings extends Properties {
 	 */
 	public static void setMaxHtOfCrossoverTree(Integer aMaxHtOfCrossoverTree) {
 		setIntProperty(_CROSSOVER_SUBTREE_HEIGHT, aMaxHtOfCrossoverTree);
+	}
+
+	/**
+	 * @return the method to use for tree generation
+	 */
+	public static String getGenerationMethod() {
+		return getInstance().getProperty(_GENERATION_METHOD, _DEFAULT_GENERATION_METHOD);
+	}
+
+	/**
+	 * @param aMethod the method to use for tree generation
+	 */
+	public static void setGenerationMethod(GenerationMethod aMethod) {
+		setStringProperty(_GENERATION_METHOD, aMethod.name());
+	}
+
+	/**
+	 * @return the comma separated string of input training data (doubles)
+	 */
+	public static String getTrainingInputString() {
+		return getInstance().getProperty(_INPUT_TRAINING_DATA, _DEFAULT_INPUT_TRAINING_DATA);
+	}
+
+	/**
+	 * @param aTrainingVals a comma separated string of the new input training values
+	 */
+	public static void setTrainingInputString(String aTrainingVals) {
+		setStringProperty(_INPUT_TRAINING_DATA, aTrainingVals);
+		getInstance().xTrainingData.clear();
+	}
+
+	/**
+	 * @return the list (vector) of training data for the GP trees
+	 */
+	public static Vector<TrainingData> getTrainingData() {
+		return getInstance().getTrainingDataProperty();
 	}
 
 	/**
@@ -331,6 +361,20 @@ public class GPSettings extends Properties {
 			}
 		}
 		return xOperands;
+	}
+
+	/**
+	 * @return the list of training data for the property
+	 */
+	private Vector<TrainingData> getTrainingDataProperty() {
+		if (xTrainingData.isEmpty()) {
+			for (String inputVal : GPSettings.getTrainingInputString().split(",")) {
+				double input = Double.parseDouble(inputVal);
+				TrainingData datum = new TrainingData(input, TrainingData.calculatePerfectOutput(input));
+				xTrainingData.add(datum);
+			}
+		}
+		return xTrainingData;
 	}
 
 	/**
@@ -430,6 +474,38 @@ public class GPSettings extends Properties {
 	}
 
 	/**
+	 * Update the properties object with the new value for the passed in property. Additionally continuously update the
+	 * output properties file with the current settings for ALL of the current properties that are being used within
+	 * this properties object.
+	 * 
+	 * @param aKey the property name (key) to update in the properties object/file
+	 * @param aValue the string value for this property
+	 */
+	private static void setStringProperty(String aKey, String aValue) {
+		try {
+			try {
+				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));
+			} catch (IOException e) {
+				System.err.println("IOException: Unable to open output properties file [" + xInitialPropertiesFile
+						+ "] for GPSettings.");
+			}
+
+			/*
+			 * Update the singleton properties object with the new value for the key and re-write all of the current
+			 * properties into the output properties file so that it will always show the current state of the
+			 * properties (if not simply the defaults).
+			 */
+			getInstance().setProperty(aKey, aValue);
+			getInstance().store(xOutputStream, null);
+
+			xOutputStream.close();
+		} catch (IOException e) {
+			System.err.println("IOException: Unable to store " + aKey + "=" + aValue + " into the properties file ["
+					+ xInitialPropertiesFile + "].");
+		}
+	}
+
+	/**
 	 * Update the properties object with the new value for the operator property. Additionally continuously update the
 	 * output properties file with the current settings for ALL of the current properties that are being used within
 	 * this properties object.
@@ -459,9 +535,10 @@ public class GPSettings extends Properties {
 			 * Generate a new comma separated string of all of the allowed operators stored in the vector so that we can
 			 * set it back into the properties file.
 			 */
-			String compositeOperators = xOperators.firstElement();
+			StringBuffer compositeOperators = new StringBuffer();
+			compositeOperators.append(xOperators.firstElement());
 			for (int i = 1; i < xOperators.size(); i++) {
-				compositeOperators = compositeOperators + "," + xOperators.get(i);
+				compositeOperators.append("," + xOperators.elementAt(i));
 			}
 
 			/*
@@ -469,7 +546,7 @@ public class GPSettings extends Properties {
 			 * properties into the output properties file so that it will always show the current state of the
 			 * properties (if not simply the defaults).
 			 */
-			getInstance().setProperty(_OPERATORS, compositeOperators);
+			getInstance().setProperty(_OPERATORS, compositeOperators.toString());
 			getInstance().store(xOutputStream, null);
 
 			xOutputStream.close();
@@ -509,9 +586,10 @@ public class GPSettings extends Properties {
 			 * Generate a new comma separated string of all of the allowed operands stored in the vector so that we can
 			 * set it back into the properties file.
 			 */
-			String compositeOperands = xOperands.firstElement();
+			StringBuffer compositeOperands = new StringBuffer();
+			compositeOperands.append(xOperands.firstElement());
 			for (int i = 1; i < xOperands.size(); i++) {
-				compositeOperands = compositeOperands + "," + xOperands.get(i);
+				compositeOperands.append("," + xOperands.elementAt(i));
 			}
 
 			/*
@@ -519,7 +597,7 @@ public class GPSettings extends Properties {
 			 * properties into the output properties file so that it will always show the current state of the
 			 * properties (if not simply the defaults).
 			 */
-			getInstance().setProperty(_OPERANDS, compositeOperands);
+			getInstance().setProperty(_OPERANDS, compositeOperands.toString());
 			getInstance().store(xOutputStream, null);
 
 			xOutputStream.close();
@@ -537,6 +615,7 @@ public class GPSettings extends Properties {
 		System.out.println("  =====================");
 		System.out.println("     xOperators=" + xOperators);
 		System.out.println("     xOperands=" + xOperands);
+		System.out.println("     xTrainingData=" + xTrainingData);
 		System.out.println("   Properties:");
 		System.out.println("  =====================");
 		for (String propertyKey : stringPropertyNames()) {
