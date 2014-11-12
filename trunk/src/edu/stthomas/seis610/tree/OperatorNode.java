@@ -1,5 +1,6 @@
 package edu.stthomas.seis610.tree;
 
+import edu.stthomas.seis610.gp.TrainingData;
 import edu.stthomas.seis610.util.GPException;
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -111,41 +112,42 @@ public class OperatorNode extends BinaryTreeNode {
 	 * In the case of an invalid tree, in addition to setting the invalid indicator simply return a large (max) value
 	 * back to the caller.
 	 * 
+	 * @param aTrainingDatum the input training value (X) to use during the evaluation of the function
 	 * @returns the evaluated result of the expression based upon the the type of operator in this node
 	 * @throws GPException
 	 */
-	public Double evaluateOutput(Double inputValue) throws GPException {
+	public Double evaluateOutput(TrainingData aTrainingDatum) throws GPException {
 		Double output = Double.MAX_VALUE;
 		if (isTreeNodeValid()) {
 			switch (getOperator()) {
 			case ADD:
-				output = getLeftChild().evaluateOutput(inputValue) + getRightChild().evaluateOutput(inputValue);
+				output = getLeftChild().evaluateOutput(aTrainingDatum) + getRightChild().evaluateOutput(aTrainingDatum);
 				break;
 			case SUB:
-				output = getLeftChild().evaluateOutput(inputValue) - getRightChild().evaluateOutput(inputValue);
+				output = getLeftChild().evaluateOutput(aTrainingDatum) - getRightChild().evaluateOutput(aTrainingDatum);
 				break;
 			case MUL:
-				output = getLeftChild().evaluateOutput(inputValue) * getRightChild().evaluateOutput(inputValue);
+				output = getLeftChild().evaluateOutput(aTrainingDatum) * getRightChild().evaluateOutput(aTrainingDatum);
 				break;
 			case DIV:
-				Double rightTreeValue = getRightChild().evaluateOutput(inputValue);
+				Double rightTreeValue = getRightChild().evaluateOutput(aTrainingDatum);
 				if (rightTreeValue != 0) {
-					output = getLeftChild().evaluateOutput(inputValue) / rightTreeValue;
+					output = getLeftChild().evaluateOutput(aTrainingDatum) / rightTreeValue;
 				} else {
 					setTreeNodeInvalid();
 				}
 				break;
 			case SIN:
-				output = Math.sin(getLeftChild().evaluateOutput(inputValue));
+				output = Math.sin(getLeftChild().evaluateOutput(aTrainingDatum));
 				setTreeNodeInvalid();
 				break;
 			case COS:
-				output = Math.cos(getLeftChild().evaluateOutput(inputValue));
+				output = Math.cos(getLeftChild().evaluateOutput(aTrainingDatum));
 				setTreeNodeInvalid();
 				break;
 			case POW:
-				output = Math.pow(getLeftChild().evaluateOutput(inputValue),
-						Math.min(getRightChild().evaluateOutput(inputValue), 20));
+				output = Math.pow(getLeftChild().evaluateOutput(aTrainingDatum),
+						Math.min(getRightChild().evaluateOutput(aTrainingDatum), 20));
 				setTreeNodeInvalid();
 				break;
 			default:

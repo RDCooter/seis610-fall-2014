@@ -1,7 +1,6 @@
 package edu.stthomas.seis610.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Vector;
@@ -184,6 +183,19 @@ public class SettingsTest {
 		GPSettings.setMaxHtOfCrossoverTree(newSettingValue);
 		toLog.info(updString + GPSettings._CROSSOVER_SUBTREE_HEIGHT + ": " + GPSettings.getMaxHtOfCrossoverTree() + "  [Compare=" + newSettingValue + "]");
 		assertEquals((updString + GPSettings._CROSSOVER_SUBTREE_HEIGHT), newSettingValue.longValue(), GPSettings.getMaxHtOfCrossoverTree().longValue());
+	}
+
+	@Test
+	public void testGetMaxHtOfMutationSubtree() {
+		// Test the Default Settings (first retrieval should use default)
+		toLog.info(dftString + GPSettings._MUTATION_SUBTREE_HEIGHT + ": " + GPSettings.getMaxHtOfMutationSubtree() + "  [Compare=" + GPSettings._DEFAULT_MAX_MUTATION_HEIGHT + "]");
+		assertEquals((dftString + GPSettings._MUTATION_SUBTREE_HEIGHT), Long.parseLong(GPSettings._DEFAULT_MAX_MUTATION_HEIGHT), GPSettings.getMaxHtOfMutationSubtree().longValue());
+		
+		// Test for Updated Settings (any retrieval after a setter has been invoked should retrieve the new value)
+		Integer newSettingValue = new Integer(30);
+		GPSettings.setMaxHtOfMutationSubtree(newSettingValue);
+		toLog.info(updString + GPSettings._MUTATION_SUBTREE_HEIGHT + ": " + GPSettings.getMaxHtOfMutationSubtree() + "  [Compare=" + newSettingValue + "]");
+		assertEquals((updString + GPSettings._MUTATION_SUBTREE_HEIGHT), newSettingValue.longValue(), GPSettings.getMaxHtOfMutationSubtree().longValue());
 	}
 
 	@Test

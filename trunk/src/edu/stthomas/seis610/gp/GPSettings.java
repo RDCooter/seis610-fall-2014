@@ -48,6 +48,7 @@ public class GPSettings extends Properties {
 	public final static String _POPULATION_SIZE = new String("populationSize");
 	public final static String _SUBTREE_HEIGHT = new String("maxSubtreeHeight");
 	public final static String _CROSSOVER_SUBTREE_HEIGHT = new String("maxCrossoverSubtreeHeight");
+	public final static String _MUTATION_SUBTREE_HEIGHT = new String("maxMutationSubtreeHeight");
 	public final static String _GENERATION_METHOD = new String("treeGenerationMethod");
 	public final static String _INPUT_TRAINING_DATA = new String("trainingDataInput");
 
@@ -55,7 +56,7 @@ public class GPSettings extends Properties {
 	 * Define Default (Constant) Values for the Settings
 	 */
 	public final static String _DEFAULT_RANDOM_SEED = new String("12345");
-	public final static String _DEFAULT_MUTATION_PROBABILITY = new String("0.70");
+	public final static String _DEFAULT_MUTATION_PROBABILITY = new String("0.05");
 	public final static String _DEFAULT_FITNESS_PROBABILITY = new String("0.50");
 	public final static String _DEFAULT_FITNESS_MARGIN_ERROR = new String("0.01");
 	public final static String _DEFAULT_OPERATORS = new String("ADD,SUB,MUL,DIV");
@@ -64,6 +65,7 @@ public class GPSettings extends Properties {
 	public final static String _DEFAULT_MAX_POPULATION_SIZE = new String("100");
 	public final static String _DEFAULT_MAX_SUBTREE_HEIGHT = new String("4");
 	public final static String _DEFAULT_MAX_CROSSOVER_HEIGHT = new String("10");
+	public final static String _DEFAULT_MAX_MUTATION_HEIGHT = new String("2");
 	public final static String _DEFAULT_GENERATION_METHOD = new String("FULL");
 	public final static String _DEFAULT_INPUT_TRAINING_DATA = new String("-5,-4,-3,-2,-1,0,1,2,3,4,5");
 
@@ -262,7 +264,7 @@ public class GPSettings extends Properties {
 	}
 
 	/**
-	 * @return the initial max height of a crossover subtree for new GP trees
+	 * @return the max height of a crossover subtree operation
 	 */
 	public static Integer getMaxHtOfCrossoverTree() {
 		return getInstance().getIntProperty(_CROSSOVER_SUBTREE_HEIGHT, _DEFAULT_MAX_CROSSOVER_HEIGHT);
@@ -273,6 +275,20 @@ public class GPSettings extends Properties {
 	 */
 	public static void setMaxHtOfCrossoverTree(Integer aMaxHtOfCrossoverTree) {
 		setIntProperty(_CROSSOVER_SUBTREE_HEIGHT, aMaxHtOfCrossoverTree);
+	}
+
+	/**
+	 * @return the max height of a mutation subtree operation
+	 */
+	public static Integer getMaxHtOfMutationSubtree() {
+		return getInstance().getIntProperty(_MUTATION_SUBTREE_HEIGHT, _DEFAULT_MAX_MUTATION_HEIGHT);
+	}
+
+	/**
+	 * @param aMaxHtOfMutationSubtree the new max height of a subtree value for this property
+	 */
+	public static void setMaxHtOfMutationSubtree(Integer aMaxHtOfMutationSubtree) {
+		setIntProperty(_MUTATION_SUBTREE_HEIGHT, aMaxHtOfMutationSubtree);
 	}
 
 	/**

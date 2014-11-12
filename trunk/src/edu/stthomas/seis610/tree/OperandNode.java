@@ -1,5 +1,6 @@
 package edu.stthomas.seis610.tree;
 
+import edu.stthomas.seis610.gp.TrainingData;
 import edu.stthomas.seis610.util.GPException;
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -105,12 +106,13 @@ public class OperandNode extends BinaryTreeNode {
 	 * tree. Make sure to protect against an invalid division (divide by zero) and set the indicator that the tree will
 	 * not produce a valid result.
 	 * 
+	 * @param aTrainingDatum the input training value (X) to use during the evaluation of the function
 	 * @returns the terminal value (variable or constant) associated with this operand node
 	 * @throws GPException
 	 */
-	public Double evaluateOutput(Double inputValue) throws GPException {
+	public Double evaluateOutput(TrainingData aTrainingDatum) throws GPException {
 		if (isVariable()) {
-			return inputValue;
+			return aTrainingDatum.getInputData();
 		} else {
 			return (Double) getData();
 		}

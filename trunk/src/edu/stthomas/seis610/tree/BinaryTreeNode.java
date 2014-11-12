@@ -1,5 +1,6 @@
 package edu.stthomas.seis610.tree;
 
+import edu.stthomas.seis610.gp.TrainingData;
 import edu.stthomas.seis610.util.GPException;
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -217,10 +218,11 @@ public abstract class BinaryTreeNode implements Cloneable {
 	 * tree. Make sure to protect against an invalid division (divide by zero) and set the indicator that the tree will
 	 * not produce a valid result.
 	 * 
+	 * @param aTrainingDatum the input training value (X) to use during the evaluation of the function
 	 * @returns the evaluated result of the expression based upon the the type of operator in this node
 	 * @throws GPException
 	 */
-	abstract public Double evaluateOutput(Double inputValue) throws GPException;
+	abstract public Double evaluateOutput(TrainingData aTrainingDatum) throws GPException;
 
 	/**
 	 * @returns an integer count of the height of the subtree
