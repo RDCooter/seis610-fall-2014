@@ -65,40 +65,6 @@ public class GPTreeFactory {
 	}
 
 	/**
-	 * Generate a new expression node subtree using the value extracted from the user settings as to which generation
-	 * method to employ to generate the actual subtree.
-	 * 
-	 * @return the newly constructed expression subtree
-	 * @throws GPException
-	 */
-	public static GeneticProgrammingTree generateSubtree() throws GPException {
-		GeneticProgrammingTree newGPFunction = null;
-
-		// Get the type of subtree generation that we are supposed to perform from the Settings and invoke the correct
-		// generation method based upon the selection.
-		switch (GenerationMethod.valueOf(GPSettings.getGenerationMethod())) {
-		case FULL:
-			newGPFunction = generateFullSubtree();
-			break;
-		case GROW:
-			newGPFunction = generateGrowSubtree();
-			break;
-		case RANDOM:
-			// In this case randomly select one of the previous generation methods and allow the tree to be
-			// generated. This should result in a more diverse population of functions and trees.
-			if (GPSettings.getRandomInt(2) == 0) {
-				newGPFunction = generateFullSubtree();
-			} else {
-				newGPFunction = generateGrowSubtree();
-			}
-			break;
-		default:
-			throw new GPException("Invalid Generation Method detected in generateSubtree.");
-		}
-		return newGPFunction;
-	}
-
-	/**
 	 * Generate a new "Full" expression node tree using the value extracted from the user settings as to the max height
 	 * allowed for this generated tree.
 	 * 
@@ -109,13 +75,14 @@ public class GPTreeFactory {
 	}
 
 	/**
-	 * Generate a new "Full" expression node subtree using the value extracted from the user settings as to the max
-	 * height allowed for this generated subtree.
+	 * Generate a new "Full" expression node subtree using the value passed in from the caller as to the max height
+	 * allowed for this generated subtree.
 	 * 
+	 * @param aMaxHeight the max generated height allowed for this node subtree
 	 * @return the newly constructed expression subtree
 	 */
-	public static GeneticProgrammingTree generateFullSubtree() {
-		return generateFullTree(GPSettings.getMaxHtOfCrossoverTree());
+	public static BinaryTreeNode generateFullSubtree(Integer aMaxHeight) {
+		return generateFullSubtree(0, aMaxHeight);
 	}
 
 	/**
@@ -129,13 +96,16 @@ public class GPTreeFactory {
 	}
 
 	/**
-	 * Generate a new "Grow" expression node subtree using the value extracted from the user settings as to the max
-	 * height allowed for this generated subtree.
+	 * Generate a new "Grow" expression node subtree using the value passed in from the caller as to the max height
+	 * allowed for this generated subtree.
 	 * 
+	 * @param aMaxHeight the max generated height allowed for this node subtree
 	 * @return the newly constructed expression subtree
 	 */
-	public static GeneticProgrammingTree generateGrowSubtree() {
-		return generateGrowTree(GPSettings.getMaxHtOfCrossoverTree(), true);
+	public static BinaryTreeNode generateGrowSubtree(Integer aMaxHeight) {
+		BinaryTreeNode subTreeRoot = generateGrowSubtree(0, aMaxHeight);
+		subTreeRoot.setNodeType(NodeType.ROOT);
+		return subTreeRoot;
 	}
 
 	/**
@@ -160,7 +130,7 @@ public class GPTreeFactory {
 		 * Generate the GeneticProgrammingTree to represent this expression node tree for the GP processing.
 		 */
 		GeneticProgrammingTree gpFunction = new GeneticProgrammingTree(nodeTreeRoot);
-		// gpFunction.setTrainingData(trainingData);
+		gpFunction.setTrainingData(trainingData);
 
 		return gpFunction;
 	}
@@ -193,7 +163,7 @@ public class GPTreeFactory {
 		 * Generate the GeneticProgrammingTree to represent this expression node tree for the GP processing.
 		 */
 		GeneticProgrammingTree gpFunction = new GeneticProgrammingTree(nodeTreeRoot);
-		// gpFunction.setTrainingData(trainingData);
+		gpFunction.setTrainingData(trainingData);
 
 		return gpFunction;
 	}

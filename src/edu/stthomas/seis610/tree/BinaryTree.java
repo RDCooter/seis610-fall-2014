@@ -3,6 +3,8 @@ package edu.stthomas.seis610.tree;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.stthomas.seis610.gp.GPSettings;
+import edu.stthomas.seis610.gp.TrainingData;
 import edu.stthomas.seis610.util.GPException;
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -15,7 +17,7 @@ import edu.stthomas.seis610.util.GPException;
  * @version 1.2
  */
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-public class BinaryTree implements Cloneable {
+public abstract class BinaryTree implements Cloneable {
 	protected BinaryTreeNode xRoot;
 
 	/**
@@ -32,7 +34,7 @@ public class BinaryTree implements Cloneable {
 	}
 
 	/**
-	 * @returns the root node in the binary tree for the expression
+	 * @return the root node in the binary tree for the expression
 	 */
 	public BinaryTreeNode getRoot() {
 		return xRoot;
@@ -46,14 +48,14 @@ public class BinaryTree implements Cloneable {
 	}
 
 	/**
-	 * @returns the indicator if the expressions within the node tree are valid
+	 * @return the indicator if the expressions within the node tree are valid
 	 */
 	public Boolean isTreeValid() {
 		return xRoot.isTreeNodeValid();
 	}
 
 	/**
-	 * @returns an integer count of the height of the subtree
+	 * @return an integer count of the height of the subtree
 	 */
 	public Integer getHeight() {
 		return xRoot.getHeight();
@@ -62,19 +64,23 @@ public class BinaryTree implements Cloneable {
 	/**
 	 * A recursive way to evaluate the function represented by this tree.
 	 * 
-	 * @param input The input value
-	 * @returns the evaluated result of the expression based upon the passed in input value
+	 * @param aTrainingDatum the input training values (X and Y) of the target (perfect) function
+	 * @return the fitness measurement result of the expression based upon the passed in input value
 	 * @throws GPException
 	 */
-	public Double evaluate(Double inputValue) {
-		Double result = Double.MAX_VALUE;
-		try {
-			result = xRoot.evaluateOutput(inputValue);
-		} catch (GPException e) {
-			System.out.println("ERROR: <BinaryTree::evaluate>  x=" + inputValue + "  BinaryTreeNode=" + this.toString());
-			e.printStackTrace();
-		} 
-		return result;
+	public Double evaluate(TrainingData aTrainingDatum) throws GPException {
+		return xRoot.evaluateOutput(aTrainingDatum);
+	}
+
+	/**
+	 * Randomly select a single tree node from all of the nodes available within the expression tree.
+	 * 
+	 * @return a randomly selected node from the expression tree
+	 */
+	public BinaryTreeNode getRandomTreeNode() {
+		List<BinaryTreeNode> treeNodes = getPostOrderList();
+		Integer randomPosition = GPSettings.getRandomInt(treeNodes.size());
+		return treeNodes.get(randomPosition);
 	}
 
 	/**
@@ -82,7 +88,7 @@ public class BinaryTree implements Cloneable {
 	 * added.
 	 * 
 	 * @param aNode the current node within the expression tree
-	 * @returns a string representation of the nodes in the expression tree
+	 * @return a string representation of the nodes in the expression tree
 	 */
 	private String toString(BinaryTreeNode aNode) {
 		StringBuffer output;
@@ -103,7 +109,7 @@ public class BinaryTree implements Cloneable {
 	}
 
 	/**
-	 * @returns a list of the nodes in the expression tree in "post-order"
+	 * @return a list of the nodes in the expression tree in "post-order"
 	 */
 	public List<BinaryTreeNode> getPostOrderList() {
 		return getPostOrderList(getRoot());
@@ -114,7 +120,7 @@ public class BinaryTree implements Cloneable {
 	 * post-order notation.
 	 * 
 	 * @param aNode the current node within the expression tree
-	 * @returns a list of the nodes in the expression tree in "post-order"
+	 * @return a list of the nodes in the expression tree in "post-order"
 	 */
 	private LinkedList<BinaryTreeNode> getPostOrderList(BinaryTreeNode aNode) {
 		if (aNode == null) {
@@ -133,7 +139,7 @@ public class BinaryTree implements Cloneable {
 	}
 
 	/**
-	 * @returns a list of the nodes in the expression tree in "in-order"
+	 * @return a list of the nodes in the expression tree in "in-order"
 	 */
 	public List<BinaryTreeNode> getInOrderList() {
 		return getInOrderList(getRoot());
@@ -144,7 +150,7 @@ public class BinaryTree implements Cloneable {
 	 * in-order notation.
 	 * 
 	 * @param aNode the current node within the expression tree
-	 * @returns a list of the nodes in the expression tree in "in-order"
+	 * @return a list of the nodes in the expression tree in "in-order"
 	 */
 	private LinkedList<BinaryTreeNode> getInOrderList(BinaryTreeNode aNode) {
 		if (aNode == null) {

@@ -3,9 +3,9 @@ package edu.stthomas.seis610.gp;
 import java.util.Collections;
 import java.util.Vector;
 
-import edu.stthomas.seis610.tree.BinaryTreeNode;
 import edu.stthomas.seis610.tree.GPTreeFactory;
 import edu.stthomas.seis610.tree.GeneticProgrammingTree;
+import edu.stthomas.seis610.util.GPException;
 
 class GPMain extends java.lang.Thread {
 
@@ -73,14 +73,22 @@ class GPMain extends java.lang.Thread {
 			// Compute the fitness of the Initial Population
 			for (int i = 0; i < GPSettings.getPopulationSize(); i++) {
 				valid.set(i, true);
-				InitPopulation.elementAt(i).getRoot().resetTreeNodeInvalid();
+				InitPopulation.elementAt(i).reset();
 
-				Double iFitness = 0.0;
-				for (int j = 0; j < TrainingDataSet.size(); j++) {
-					Double iOutput = InitPopulation.elementAt(i).evaluate(TrainingDataSet.elementAt(j).getInputData());
-					Double jDelta = Math.abs(iOutput - TrainingDataSet.elementAt(j).getOutputData());
-					iFitness += jDelta;
-				}
+//				Double iFitness = 0.0;
+				Double iFitness = InitPopulation.elementAt(i).calculateFitness();
+//				for (int j = 0; j < TrainingDataSet.size(); j++) {
+//					try {
+//						Double iOutput = InitPopulation.elementAt(i).evaluate(TrainingDataSet.elementAt(j));
+//						Double jDelta = Math.abs(iOutput - TrainingDataSet.elementAt(j).getOutputData());
+//						iFitness += jDelta;
+//					} catch (GPException e) {
+//						// When an error occurs during the evaluation, then simply add in the biggest standardized fitness value
+//						// into the datum.
+//						iFitness += Double.MAX_VALUE;
+//						e.printStackTrace();
+//					}
+//				}
 				if (InitPopulation.elementAt(i).isTreeValid() == false) {
 					valid.set(i, false);
 				}
@@ -117,11 +125,13 @@ class GPMain extends java.lang.Thread {
 			// Prepare Crossover gpTrees
 			for (int i = 0; i < GPSettings.getNumCrossOvers(); i++) {
 				Integer populationIdx = GPSettings.getRandomInt(NewPopulation.size());
-				BinaryTreeNode aNode = (BinaryTreeNode) NewPopulation.elementAt(populationIdx).getRoot().clone();
+				GeneticProgrammingTree aGPT = (GeneticProgrammingTree) NewPopulation.elementAt(populationIdx).clone();
+//				BinaryTreeNode aNode = (BinaryTreeNode) NewPopulation.elementAt(populationIdx).getRoot().clone();
 				populationIdx = GPSettings.getRandomInt(NewPopulation.size());
-				BinaryTreeNode bNode = (BinaryTreeNode) NewPopulation.elementAt(populationIdx).getRoot().clone();
-				GeneticProgrammingTree aGPT = new GeneticProgrammingTree(aNode);
-				GeneticProgrammingTree bGPT = new GeneticProgrammingTree(bNode);
+				GeneticProgrammingTree bGPT = (GeneticProgrammingTree) NewPopulation.elementAt(populationIdx).clone();
+//				BinaryTreeNode bNode = (BinaryTreeNode) NewPopulation.elementAt(populationIdx).getRoot().clone();
+//				GeneticProgrammingTree aGPT = new GeneticProgrammingTree(aNode);
+//				GeneticProgrammingTree bGPT = new GeneticProgrammingTree(bNode);
 
 				aGPT.crossOver(bGPT);
 
@@ -134,7 +144,12 @@ class GPMain extends java.lang.Thread {
 			for (int i = 0; i < GPSettings.getMutationProbability() * NewPopulation.size(); i++) {
 				Integer populationIdx = GPSettings.getRandomInt(NewPopulation.size());
 
-				NewPopulation.elementAt(populationIdx).mutate();
+				try {
+//					NewPopulation.elementAt(populationIdx).mutate();
+					NewPopulation.elementAt(populationIdx).mutate_new();
+				} catch (GPException e) {
+					System.out.println("ERROR: <GeneticProgrammingTree.mutate()>: " + e.getMessage());
+				}
 
 			}
 
