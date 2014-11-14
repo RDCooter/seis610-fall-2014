@@ -200,7 +200,7 @@ public class GPGenericTest {
 	@Test
 	public void testFullTree() throws GPException {
 		Integer maxHeight = GPSettings.getMaxHtOfInitTree();
-		GeneticProgrammingTree fullIndividual = GPTreeFactory.generateFullTree();
+		GeneticProgrammingTree fullIndividual = GPTreeFactory.generateFullTree(maxHeight);
 		toLog.info("fullIndividual[height=" + fullIndividual.getHeight() + "]: " + fullIndividual);
 		assertEquals(fullIndividual.getHeight(), maxHeight);
 	}
@@ -216,7 +216,7 @@ public class GPGenericTest {
 	@Test
 	public void testGrowTree() throws GPException {
 		Integer maxHeight = GPSettings.getMaxHtOfInitTree();
-		GeneticProgrammingTree growIndividual = GPTreeFactory.generateGrowTree();
+		GeneticProgrammingTree growIndividual = GPTreeFactory.generateGrowTree(maxHeight);
 		toLog.info("growIndividual[height=" + growIndividual.getHeight() + "]: " + growIndividual);
 		assertTrue(growIndividual.getHeight() <= maxHeight);
 	}

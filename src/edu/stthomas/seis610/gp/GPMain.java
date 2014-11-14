@@ -56,7 +56,7 @@ class GPMain extends java.lang.Thread {
 
 		// Prepare the Initial Population
 		for (int i = 0; i < GPSettings.getPopulationSize(); i++) {
-			InitPopulation.add(i, GPTreeFactory.generateFullTree());
+			InitPopulation.add(i, GPTreeFactory.generateFullTree(GPSettings.getMaxHtOfInitTree()));
 		}
 
 		Double minFitness = GPSettings.getFitnessMarginOfError() + 1;

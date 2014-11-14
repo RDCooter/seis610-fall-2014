@@ -1,6 +1,17 @@
 package edu.stthomas.seis610.gp;
 
+import java.util.logging.Logger;
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+/**
+* A datum that will own and control the collection and calculation of the  fitness measurements for a given GP tree.
+* 
+* @author Robert Driesch (cooter) Nov 11, 2014 2:25:18 PM
+* @version 1.2
+*/
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 public class FitnessDatum implements Comparable<FitnessDatum>, Cloneable {
+	private static final Logger Log = Logger.getLogger("Global");
 	private Double xStandardizedFitness = new Double(Double.NaN);
 
 	/**
@@ -77,7 +88,7 @@ public class FitnessDatum implements Comparable<FitnessDatum>, Cloneable {
 	 * @return the result of the operation (this)
 	 */
 	public FitnessDatum add(FitnessDatum otherDatum) {
-//		System.out.println("INFO: <::add.before> this." + this.xStandardizedFitness + "  otherDatum." + xStandardizedFitness);
+		Log.fine("<BEFORE> this." + this.xStandardizedFitness + "  otherDatum." + otherDatum.xStandardizedFitness);
 		if (!this.xStandardizedFitness.isNaN() && !otherDatum.xStandardizedFitness.isNaN()) {
 			setStandardizedFitness(this.xStandardizedFitness + otherDatum.xStandardizedFitness);
 		} else if (this.xStandardizedFitness.isNaN()) {
@@ -85,7 +96,7 @@ public class FitnessDatum implements Comparable<FitnessDatum>, Cloneable {
 			// actual operation.
 			setStandardizedFitness(otherDatum.xStandardizedFitness);
 		}
-//		System.out.println("INFO: <::add.after> this." + this.xStandardizedFitness + "  otherDatum." + xStandardizedFitness);
+		Log.fine("<AFTER> Result=this." + this.xStandardizedFitness);
 
 		return this;
 	}
@@ -97,7 +108,7 @@ public class FitnessDatum implements Comparable<FitnessDatum>, Cloneable {
 	 * @return the result of the operation (this)
 	 */
 	public FitnessDatum add(Double otherDouble) {
-//		System.out.println("INFO: <::add.before> this." + this.xStandardizedFitness + "  otherDouble." + otherDouble);
+		Log.fine("<BEFORE> this." + this.xStandardizedFitness + "  otherDouble." + otherDouble);
 		if (!this.xStandardizedFitness.isNaN() && !otherDouble.isNaN()) {
 			setStandardizedFitness(this.xStandardizedFitness + otherDouble);
 		} else if (this.xStandardizedFitness.isNaN()) {
@@ -105,7 +116,7 @@ public class FitnessDatum implements Comparable<FitnessDatum>, Cloneable {
 			// actual operation.
 			setStandardizedFitness(otherDouble);
 		}
-//		System.out.println("INFO: <::add.after> this." + this.xStandardizedFitness + "  otherDouble." + otherDouble);
+		Log.fine("<AFTER> Result=this." + this.xStandardizedFitness);
 
 		return this;
 	}
@@ -118,9 +129,10 @@ public class FitnessDatum implements Comparable<FitnessDatum>, Cloneable {
 			myFitness = this.getValue();
 			otherFitness = otherDatum.getValue();
 		} catch (Exception e) {
-			System.out.println("ERROR: <::compareTo>: this." + this + " other." + otherDatum + "  " + e.getMessage());
+			Log.severe("this." + this + " other." + otherDatum + "  " + e.getMessage());
 		}
 		
+		Log.finest("this.[" + myFitness + "].compareTo(other.[" + otherFitness + "]) = " + myFitness.compareTo(otherFitness));
 		return myFitness.compareTo(otherFitness);
 	}
 
@@ -164,7 +176,7 @@ public class FitnessDatum implements Comparable<FitnessDatum>, Cloneable {
 
 	@Override
 	public String toString() {
-		return "StandardizedFitness=" + (isValid() ? xStandardizedFitness : "*Invalid");
+		return "" + (isValid() ? xStandardizedFitness : "*Invalid");
 	}
 
 	/**

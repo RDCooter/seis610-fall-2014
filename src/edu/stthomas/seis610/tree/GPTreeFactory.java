@@ -19,60 +19,9 @@ import edu.stthomas.seis610.util.GPException;
  */
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 public class GPTreeFactory {
-	/**
-	 * Define Enumeration to Describe the Generation Methods of Trees in the Factory
-	 */
-	public enum GenerationMethod {
-		FULL, GROW, RANDOM;
-	};
-
 	private static Vector<String> operatorList = GPSettings.getOperators();
 	private static Vector<String> operandList = GPSettings.getOperands();
 	private static Vector<TrainingData> trainingData = GPSettings.getTrainingData();
-
-	/**
-	 * Generate a new expression node tree using the value extracted from the user settings as to which generation
-	 * method to employ to generate the actual tree.
-	 * 
-	 * @return the newly constructed expression tree
-	 * @throws GPException
-	 */
-	public static GeneticProgrammingTree generateTree() throws GPException {
-		GeneticProgrammingTree newGPFunction = null;
-
-		// Get the type of subtree generation that we are supposed to perform from the Settings and invoke the correct
-		// generation method based upon the selection.
-		switch (GenerationMethod.valueOf(GPSettings.getGenerationMethod())) {
-		case FULL:
-			newGPFunction = generateFullTree();
-			break;
-		case GROW:
-			newGPFunction = generateGrowTree();
-			break;
-		case RANDOM:
-			// In this case randomly select one of the previous generation methods and allow the tree to be
-			// generated. This should result in a more diverse population of functions and trees.
-			if (GPSettings.getRandomInt(2) == 0) {
-				newGPFunction = generateFullTree();
-			} else {
-				newGPFunction = generateGrowTree();
-			}
-			break;
-		default:
-			throw new GPException("Invalid Generation Method detected in generateTree.");
-		}
-		return newGPFunction;
-	}
-
-	/**
-	 * Generate a new "Full" expression node tree using the value extracted from the user settings as to the max height
-	 * allowed for this generated tree.
-	 * 
-	 * @return the newly constructed expression tree
-	 */
-	public static GeneticProgrammingTree generateFullTree() {
-		return generateFullTree(GPSettings.getMaxHtOfInitTree());
-	}
 
 	/**
 	 * Generate a new "Full" expression node subtree using the value passed in from the caller as to the max height
@@ -83,16 +32,6 @@ public class GPTreeFactory {
 	 */
 	public static BinaryTreeNode generateFullSubtree(Integer aMaxHeight) {
 		return generateFullSubtree(0, aMaxHeight);
-	}
-
-	/**
-	 * Generate a new "Grow" expression node tree using the value extracted from the user settings as to the max height
-	 * allowed for this generated tree.
-	 * 
-	 * @return the newly constructed expression tree
-	 */
-	public static GeneticProgrammingTree generateGrowTree() {
-		return generateGrowTree(GPSettings.getMaxHtOfInitTree(), false);
 	}
 
 	/**
@@ -118,7 +57,7 @@ public class GPTreeFactory {
 	 * @param aMaxHeight the max generated height allowed for this node tree
 	 * @return the newly constructed GP tree representing this function and expression node tree
 	 */
-	private static GeneticProgrammingTree generateFullTree(Integer aMaxHeight) {
+	public static GeneticProgrammingTree generateFullTree(Integer aMaxHeight) {
 		/*
 		 * Generate the complete Full or Bushy node tree with all of its children so that it can be assigned as the root
 		 * of the GeneticProgrammingTree that we are going to construct.
@@ -143,10 +82,9 @@ public class GPTreeFactory {
 	 * the tree.
 	 * 
 	 * @param aMaxHeight the max generated height allowed for this node tree
-	 * @param aSubtree indicates if this is being built for a subtree or not
 	 * @return the newly constructed GP tree representing this function and expression node tree
 	 */
-	private static GeneticProgrammingTree generateGrowTree(Integer aMaxHeight, boolean aSubtree) {
+	public static GeneticProgrammingTree generateGrowTree(Integer aMaxHeight) {
 		/*
 		 * Generate the complete grown node tree with all of its children so that it can be assigned as the root of the
 		 * GeneticProgrammingTree that we are going to construct. If this is not being built for a subtree and the
@@ -157,7 +95,7 @@ public class GPTreeFactory {
 		do {
 			nodeTreeRoot = generateGrowSubtree(0, aMaxHeight);
 			nodeTreeRoot.setNodeType(NodeType.ROOT);
-		} while (!aSubtree && nodeTreeRoot.getHeight().intValue() == 0);
+		} while (nodeTreeRoot.getHeight().intValue() == 0);
 
 		/*
 		 * Generate the GeneticProgrammingTree to represent this expression node tree for the GP processing.
