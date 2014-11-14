@@ -1,6 +1,5 @@
 package edu.stthomas.seis610.gp;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
@@ -216,10 +215,15 @@ public class GPGeneration {
 			// Use natural selection to extract the Top-N individuals from the population.
 
 			List<GeneticProgrammingTree> lst = naturalSelection(reproductionCount);
-			Log.info("Natural Selection [size=" + lst.size() + "]:  Tree=" + lst);
+			Log.finer("Natural Selection [size=" + lst.size() + "]:  Tree=" + lst);
 
 			xReproducedIndividuals.addAll(lst);
 		} else if (reproductionMethod == ReproductionMethod.TOURNAMENT_SELECTION) {
+			// When dealing with a tournament selection technique, we should still bring along the current best
+			// individual to the next generation.
+//			xReproducedIndividuals.add(getBestIndividual());
+//			reproductionCount = reproductionCount - 1;
+			
 			// Use a tournament selection technique to find the fittest individuals from a number of different random
 			// selections (tournaments) of different individuals.
 			for (int i = 0; i < reproductionCount; i++) {
@@ -241,7 +245,7 @@ public class GPGeneration {
 		// Sort the entire population based upon the fitness measurement and simply return the top-n individuals back in
 		// a new sublist.
 		Collections.sort(xPopulation);
-		Log.info("Natural Selection [aTopIndividuals=" + aTopIndividuals + "]:  Tree=" + xPopulation);
+		Log.finer("Natural Selection [aTopIndividuals=" + aTopIndividuals + "]:  Tree=" + xPopulation);
 		return xPopulation.subList(0, aTopIndividuals);
 	}
 
@@ -278,8 +282,8 @@ public class GPGeneration {
 		// If the winner of the tournament does not contain a valid tree or if the fitness measurement is not valid for
 		// some reason, then recursively request a new tournament take place to determine the best individual.
 		if (!bestIndividual.getFitness().isValid() || !bestIndividual.isTreeValid()) {
-			Log.info("Tournament Selection found an invalid tree [recursion=" + aRecursionLevel + "]:  Tree="
-					+ bestIndividual);
+			// Log.warning("Tournament Selection found an invalid tree [recursion=" + aRecursionLevel + "]:  Tree="
+			// + bestIndividual);
 			if (aRecursionLevel >= 5) { // Enough already, just generate a new individual
 				Log.warning("Recursion level too deep for tournament selection. Generating new tree from factory.");
 				bestIndividual = GPTreeFactory.generateGrowTree(GPSettings.getMaxHtOfInitTree());
@@ -309,7 +313,7 @@ public class GPGeneration {
 	}
 
 	/**
-	 * @param aParentX the source of the X chromosome in the crossover operation 
+	 * @param aParentX the source of the X chromosome in the crossover operation
 	 * @param aParentY the source of the X chromosome in the crossover operation
 	 * @param aCrosssoverList the list that will contain the results of the crossover operation
 	 */
@@ -365,8 +369,20 @@ public class GPGeneration {
 
 		// Check the resulting trees to determine if they are too large and they exceed the height limit from the
 		// settings. If so then simply use the original parent instead.
-		aCrosssoverList.add((offspring1.getHeight() <= GPSettings.getMaxHtOfCrossoverTree())? offspring1 : aParentX);
-		aCrosssoverList.add((offspring2.getHeight() <= GPSettings.getMaxHtOfCrossoverTree())? offspring2 : aParentY);
+		// aCrosssoverList.add((offspring1.getHeight() <= GPSettings.getMaxHtOfCrossoverTree())? offspring1 : aParentX);
+		// aCrosssoverList.add((offspring2.getHeight() <= GPSettings.getMaxHtOfCrossoverTree())? offspring2 : aParentY);
+		if (offspring1.getHeight() <= GPSettings.getMaxHtOfCrossoverTree()) {
+			aCrosssoverList.add(offspring1);
+		} else {
+			// Log.warning("Height of crossover operation is too large, generating a new tree from the factory instead.");
+			aCrosssoverList.add(GPTreeFactory.generateGrowTree(GPSettings.getMaxHtOfInitTree()));
+		}
+		if (offspring2.getHeight() <= GPSettings.getMaxHtOfCrossoverTree()) {
+			aCrosssoverList.add(offspring2);
+		} else {
+			// Log.warning("Height of crossover operation is too large, generating a new tree from the factory instead.");
+			aCrosssoverList.add(GPTreeFactory.generateGrowTree(GPSettings.getMaxHtOfInitTree()));
+		}
 	}
 
 	/**
@@ -397,7 +413,7 @@ public class GPGeneration {
 				e.printStackTrace();
 			}
 		}
-		Log.info(outputBuf.toString());
+		Log.fine(outputBuf.toString());
 	}
 
 	/**

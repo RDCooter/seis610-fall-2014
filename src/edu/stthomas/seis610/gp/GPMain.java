@@ -1,34 +1,30 @@
 package edu.stthomas.seis610.gp;
 
-import java.util.Collections;
 import java.util.Vector;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
 
-import edu.stthomas.seis610.tree.GPTreeFactory;
 import edu.stthomas.seis610.tree.GeneticProgrammingTree;
 import edu.stthomas.seis610.util.GPException;
+import edu.stthomas.seis610.util.GPSimpleFormatter;
 
 class GPMain extends java.lang.Thread {
+	private static final Logger Log = Logger.getLogger("Global");
+	private GPGeneration xGeneration;
 
 	/**
 	 * @param args
 	 */
 	static volatile boolean Stop = false;
 
-	private static Integer minimumValIdx(Vector<Double> inputVector) {
-
-		Integer minValIdx = 0;
-		if (inputVector.size() != 0) {
-			minValIdx = 0;
-		}
-		for (int i = 0; i < inputVector.size(); i++) {
-			if (inputVector.elementAt(minValIdx) > inputVector.elementAt(i)) {
-				minValIdx = i;
-			}
-		}
-		return minValIdx;
-	}
-
 	public static void main(String args[]) throws InterruptedException {
+		
+		// Specify to only use a simple (text) formatter for the logging.
+		Handler myHandler = new ConsoleHandler();
+		myHandler.setFormatter(new GPSimpleFormatter());
+		Log.addHandler(myHandler);
+		Log.setUseParentHandlers(false);
 
 		GPMain thread = new GPMain();
 		thread.setPriority(7); // 1st thread at 4th non-RT priority
@@ -40,127 +36,54 @@ class GPMain extends java.lang.Thread {
 	}
 
 	public void run() {
+		xGeneration = new GPGeneration();
+		try {
+			Log.info("Starting the GP Program...");
 
-		Vector<TrainingData> TrainingDataSet = GPSettings.getTrainingData();
-		Vector<GeneticProgrammingTree> InitPopulation = new Vector<GeneticProgrammingTree>();
-		Vector<GeneticProgrammingTree> NewPopulation = new Vector<GeneticProgrammingTree>();
-		Vector<Double> Fitness = new Vector<Double>();
-		Integer generationCount = 0;
-		Vector<Boolean> valid = new Vector<Boolean>();
+			Integer generationCount = 1;
+			Integer maxGenerations = GPSettings.getMaxGenerations();
+			FitnessDatum fitnessGoal = new FitnessDatum(GPSettings.getFitnessMarginOfError());
 
-		// Print out the Training Data Set
-		System.out.println("Training Data Set [size=" + TrainingDataSet.size() + "]:");
-		for (int i = 0; i < TrainingDataSet.size(); i++) {
-			System.out.println("[" + i + "]  " + TrainingDataSet.elementAt(i));
-		}
-
-		// Prepare the Initial Population
-		for (int i = 0; i < GPSettings.getPopulationSize(); i++) {
-			InitPopulation.add(i, GPTreeFactory.generateFullTree(GPSettings.getMaxHtOfInitTree()));
-		}
-
-		Double minFitness = GPSettings.getFitnessMarginOfError() + 1;
-
-		// while (!Stop) { // continue until asked to stop
-
-		for (int i = 0; i < GPSettings.getPopulationSize(); i++) {
-			valid.add(i, true);
-		}
-		// System.out.println("Value of Stop: "+Stop);
-		while (!Stop) {
-
-			generationCount++;
-			// Compute the fitness of the Initial Population
-			for (int i = 0; i < GPSettings.getPopulationSize(); i++) {
-				valid.set(i, true);
-				InitPopulation.elementAt(i).reset();
-
-//				Double iFitness = 0.0;
-				Double iFitness = InitPopulation.elementAt(i).calculateFitness();
-//				for (int j = 0; j < TrainingDataSet.size(); j++) {
-//					try {
-//						Double iOutput = InitPopulation.elementAt(i).evaluate(TrainingDataSet.elementAt(j));
-//						Double jDelta = Math.abs(iOutput - TrainingDataSet.elementAt(j).getOutputData());
-//						iFitness += jDelta;
-//					} catch (GPException e) {
-//						// When an error occurs during the evaluation, then simply add in the biggest standardized fitness value
-//						// into the datum.
-//						iFitness += Double.MAX_VALUE;
-//						e.printStackTrace();
-//					}
-//				}
-				if (InitPopulation.elementAt(i).isTreeValid() == false) {
-					valid.set(i, false);
-				}
-
-				Fitness.add(i, iFitness);
-			}
-			minFitness = Collections.min(Fitness);
-			System.out.println();
-			System.out.println("\nFitness: " + minFitness);
-			Integer minIdxx = minimumValIdx(Fitness);
-			System.out.println("Generation: " + generationCount);
-			System.out.println("Ht: " + InitPopulation.elementAt(minIdxx).getHeight());
-			System.out.println(InitPopulation.elementAt(minIdxx));
-			System.out.println("\nbinarytree valid or not: " + valid.elementAt(minIdxx));
-
-			if (minFitness < GPSettings.getFitnessMarginOfError()) {
-				if (valid.elementAt(minIdxx) != false) {
-					Stop = true;
-					break;
-				}
-
+			// Print out the Training Data Set
+			Vector<TrainingData> trainingDataSet = GPSettings.getTrainingData();
+			Log.info("Training Data Set [size=" + trainingDataSet.size() + "]:");
+			for (int i = 0; i < trainingDataSet.size(); i++) {
+				Log.info("[" + i + "]  " + trainingDataSet.elementAt(i));
 			}
 
-			Double numFitMembers = GPSettings.getPopulationSize() * GPSettings.getFitnessProbability();
-			for (int i = 0; i < numFitMembers; i++) {
-				Integer minIdx = minimumValIdx(Fitness);
-				NewPopulation.add(InitPopulation.elementAt(minIdx));
-				InitPopulation.removeElementAt(minIdx);
-				Fitness.removeElementAt(minIdx);
-			}
-			Fitness.clear();
-			InitPopulation.clear();
+			// Process the first generation...
+			xGeneration.init();
+			Log.fine("Generation " + generationCount + ": [size=" + xGeneration.getPopulation().size() + "]: \n"
+					+ xGeneration);
 
-			// Prepare Crossover gpTrees
-			for (int i = 0; i < GPSettings.getNumCrossOvers(); i++) {
-				Integer populationIdx = GPSettings.getRandomInt(NewPopulation.size());
-				GeneticProgrammingTree aGPT = (GeneticProgrammingTree) NewPopulation.elementAt(populationIdx).clone();
-//				BinaryTreeNode aNode = (BinaryTreeNode) NewPopulation.elementAt(populationIdx).getRoot().clone();
-				populationIdx = GPSettings.getRandomInt(NewPopulation.size());
-				GeneticProgrammingTree bGPT = (GeneticProgrammingTree) NewPopulation.elementAt(populationIdx).clone();
-//				BinaryTreeNode bNode = (BinaryTreeNode) NewPopulation.elementAt(populationIdx).getRoot().clone();
-//				GeneticProgrammingTree aGPT = new GeneticProgrammingTree(aNode);
-//				GeneticProgrammingTree bGPT = new GeneticProgrammingTree(bNode);
+			GeneticProgrammingTree currentBestIndividual = xGeneration.getBestIndividual();
+			FitnessDatum minFitness = currentBestIndividual.getFitness();
+			Log.info("Generation " + generationCount + ": [height=" + currentBestIndividual.getHeight() + " fitness="
+					+ currentBestIndividual.getFitness() + "]  " + currentBestIndividual.toString());
 
-				aGPT.crossOver(bGPT);
+			// Loop until we find the best individual
+			while (!Stop && minFitness.compareTo(fitnessGoal) >= 0 && generationCount < maxGenerations) {
 
-				NewPopulation.add(aGPT);
-				NewPopulation.add(bGPT);
+				xGeneration = xGeneration.nextGeneration();
+				Log.fine("Generation " + generationCount + ": [size=" + xGeneration.getPopulation().size() + "]: \n"
+						+ xGeneration);
+
+				generationCount++;
+				currentBestIndividual = xGeneration.getBestIndividual();
+				minFitness = currentBestIndividual.getFitness();
+
+				Log.info("Generation " + generationCount + ": [height=" + currentBestIndividual.getHeight()
+						+ " fitness=" + currentBestIndividual.getFitness() + "]  " + currentBestIndividual.toString());
 
 			}
-
-			// Do some mutation
-			for (int i = 0; i < GPSettings.getMutationProbability() * NewPopulation.size(); i++) {
-				Integer populationIdx = GPSettings.getRandomInt(NewPopulation.size());
-
-				try {
-//					NewPopulation.elementAt(populationIdx).mutate();
-					NewPopulation.elementAt(populationIdx).mutate_new();
-				} catch (GPException e) {
-					System.out.println("ERROR: <GeneticProgrammingTree.mutate()>: " + e.getMessage());
-				}
-
-			}
-
-			for (int i = 0; i < NewPopulation.size(); i++) {
-				InitPopulation.add(NewPopulation.elementAt(i));
-			}
-			NewPopulation.clear();
-
+			Log.info("\nBEST INDIVIDUAL FOUND!!!\nGeneration " + generationCount + ": [height=" + currentBestIndividual.getHeight()
+					+ " fitness=" + currentBestIndividual.getFitness() + " isValid=" + currentBestIndividual.isTreeValid() + "]  \n" + currentBestIndividual.toString());
+			Log.info("End of GP Program...");
+		} catch (GPException e) {
+			Log.severe("Problem encountered during main line processing: " + e.getMessage());
+			e.printStackTrace();
 		}
 		Thread.yield();
 	}
-	// }
 
 }
