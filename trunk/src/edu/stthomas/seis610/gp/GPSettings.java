@@ -9,7 +9,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import edu.stthomas.seis610.tree.GPTreeFactory.GenerationMethod;
+import edu.stthomas.seis610.gp.GPGeneration.GenerationMethod;
+import edu.stthomas.seis610.gp.GPGeneration.ReproductionMethod;
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 /**
@@ -17,7 +18,7 @@ import edu.stthomas.seis610.tree.GPTreeFactory.GenerationMethod;
  * within the Genetic Programming application.
  * 
  * @author Pravesh Tamraker Oct 19, 2014 4:11:18 PM
- * @author Robert Driesch	cooter		Nov 4, 2014 2:25:18 PM
+ * @author Robert Driesch cooter Nov 4, 2014 2:25:18 PM
  */
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 public class GPSettings extends Properties {
@@ -41,15 +42,18 @@ public class GPSettings extends Properties {
 	public final static String _RANDOM_SEED = new String("randomSeed");
 	public final static String _MUTATION_PROBABILITY = new String("mutationProbability");
 	public final static String _FITNESS_PROBABILITY = new String("fitnessProbability");
+	public final static String _CROSSOVER_PROBABILITY = new String("crossoverProbability");
 	public final static String _FITNESS_MARGIN_ERROR = new String("fitnessMarginOfError");
 	public final static String _OPERATORS = new String("operators");
 	public final static String _OPERANDS = new String("operands");
 	public final static String _CROSSOVER_SIZE = new String("numberOfCrossOvers");
 	public final static String _POPULATION_SIZE = new String("populationSize");
+	public final static String _TOURNAMENT_SIZE = new String("tournamentSize");
 	public final static String _SUBTREE_HEIGHT = new String("maxSubtreeHeight");
 	public final static String _CROSSOVER_SUBTREE_HEIGHT = new String("maxCrossoverSubtreeHeight");
 	public final static String _MUTATION_SUBTREE_HEIGHT = new String("maxMutationSubtreeHeight");
 	public final static String _GENERATION_METHOD = new String("treeGenerationMethod");
+	public final static String _REPRODUCTION_METHOD = new String("reproductionMethod");
 	public final static String _INPUT_TRAINING_DATA = new String("trainingDataInput");
 
 	/**
@@ -58,15 +62,18 @@ public class GPSettings extends Properties {
 	public final static String _DEFAULT_RANDOM_SEED = new String("12345");
 	public final static String _DEFAULT_MUTATION_PROBABILITY = new String("0.05");
 	public final static String _DEFAULT_FITNESS_PROBABILITY = new String("0.50");
+	public final static String _DEFAULT_CROSSOVER_PROBABILITY = new String("0.90");
 	public final static String _DEFAULT_FITNESS_MARGIN_ERROR = new String("0.01");
 	public final static String _DEFAULT_OPERATORS = new String("ADD,SUB,MUL,DIV");
 	public final static String _DEFAULT_OPERANDS = new String("-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,x");
 	public final static Integer _DEFAULT_CROSSOVER_RATIO = new Integer(4);
 	public final static String _DEFAULT_MAX_POPULATION_SIZE = new String("100");
+	public final static String _DEFAULT_MAX_TOURNAMENT_SIZE = new String("6");
 	public final static String _DEFAULT_MAX_SUBTREE_HEIGHT = new String("4");
 	public final static String _DEFAULT_MAX_CROSSOVER_HEIGHT = new String("10");
 	public final static String _DEFAULT_MAX_MUTATION_HEIGHT = new String("2");
 	public final static String _DEFAULT_GENERATION_METHOD = new String("FULL");
+	public final static String _DEFAULT_REPRODUCTION_METHOD = new String("NATURAL_SELECTION");
 	public final static String _DEFAULT_INPUT_TRAINING_DATA = new String("-5,-4,-3,-2,-1,0,1,2,3,4,5");
 
 	/**
@@ -145,6 +152,20 @@ public class GPSettings extends Properties {
 	 */
 	public static void setFitnessProbability(Double aFitnessProbability) {
 		setDoubleProperty(_FITNESS_PROBABILITY, aFitnessProbability);
+	}
+
+	/**
+	 * @return the crossover probability ratio value for the GP algorithm
+	 */
+	public static Double getCrossoverProbability() {
+		return getInstance().getDoubleProperty(_CROSSOVER_PROBABILITY, _DEFAULT_CROSSOVER_PROBABILITY);
+	}
+
+	/**
+	 * @param aCrossoverProbability the new crossover probability ratio value for this property
+	 */
+	public static void setCrossoverProbability(Double aCrossoverProbability) {
+		setDoubleProperty(_CROSSOVER_PROBABILITY, aCrossoverProbability);
 	}
 
 	/**
@@ -250,6 +271,20 @@ public class GPSettings extends Properties {
 	}
 
 	/**
+	 * @return the size of the tournament selection technique for the GP algorithms
+	 */
+	public static Integer getTournamentSize() {
+		return getInstance().getIntProperty(_TOURNAMENT_SIZE, _DEFAULT_MAX_TOURNAMENT_SIZE);
+	}
+
+	/**
+	 * @param aTournamentSize the new tournament size value for this property
+	 */
+	public static void setTournamentSize(Integer aTournamentSize) {
+		setIntProperty(_TOURNAMENT_SIZE, aTournamentSize);
+	}
+
+	/**
 	 * @return the initial max height of a subtree for new GP trees
 	 */
 	public static Integer getMaxHtOfInitTree() {
@@ -303,6 +338,20 @@ public class GPSettings extends Properties {
 	 */
 	public static void setGenerationMethod(GenerationMethod aMethod) {
 		setStringProperty(_GENERATION_METHOD, aMethod.name());
+	}
+
+	/**
+	 * @return the method to use for tree reproduction
+	 */
+	public static String getReproductionMethod() {
+		return getInstance().getProperty(_REPRODUCTION_METHOD, _DEFAULT_REPRODUCTION_METHOD);
+	}
+
+	/**
+	 * @param aMethod the method to use for tree reproduction 
+	 */
+	public static void setReproductionMethod(ReproductionMethod aMethod) {
+		setStringProperty(_REPRODUCTION_METHOD, aMethod.name());
 	}
 
 	/**

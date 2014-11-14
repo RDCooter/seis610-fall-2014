@@ -11,9 +11,10 @@ import java.util.logging.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import edu.stthomas.seis610.gp.GPGeneration.GenerationMethod;
+import edu.stthomas.seis610.gp.GPGeneration.ReproductionMethod;
 import edu.stthomas.seis610.gp.GPSettings;
 import edu.stthomas.seis610.gp.TrainingData;
-import edu.stthomas.seis610.tree.GPTreeFactory.GenerationMethod;
 import edu.stthomas.seis610.util.GPSimpleFormatter;
 
 public class SettingsTest {
@@ -55,6 +56,19 @@ public class SettingsTest {
 		GPSettings.setFitnessProbability(newSettingValue);
 		toLog.info(updString + GPSettings._FITNESS_PROBABILITY + ": " + GPSettings.getFitnessProbability() + "  [Compare=" + newSettingValue + "]");
 		assertEquals((updString + GPSettings._FITNESS_PROBABILITY), newSettingValue, GPSettings.getFitnessProbability(), dftDelta);
+	}
+
+	@Test
+	public void testGetCrossoverProbability() {
+		// Test the Default Settings (first retrieval should use default)
+		toLog.info(dftString + GPSettings._CROSSOVER_PROBABILITY + ": " + GPSettings.getCrossoverProbability() + "  [Compare=" + GPSettings._DEFAULT_CROSSOVER_PROBABILITY + "]");
+		assertEquals((dftString + GPSettings._CROSSOVER_PROBABILITY), Double.parseDouble(GPSettings._DEFAULT_CROSSOVER_PROBABILITY), GPSettings.getCrossoverProbability().doubleValue(), dftDelta);
+
+		// Test for Updated Settings (any retrieval after a setter has been invoked should retrieve the new value)
+		Double newSettingValue = new Double(0.10);
+		GPSettings.setCrossoverProbability(newSettingValue);
+		toLog.info(updString + GPSettings._CROSSOVER_PROBABILITY + ": " + GPSettings.getCrossoverProbability() + "  [Compare=" + newSettingValue + "]");
+		assertEquals((updString + GPSettings._CROSSOVER_PROBABILITY), newSettingValue, GPSettings.getCrossoverProbability(), dftDelta);
 	}
 
 	@Test
@@ -160,6 +174,19 @@ public class SettingsTest {
 	}
 
 	@Test
+	public void testGetTournamentSize() {
+		// Test the Default Settings (first retrieval should use default)
+		toLog.info(dftString + GPSettings._TOURNAMENT_SIZE + ": " + GPSettings.getTournamentSize() + "  [Compare=" + GPSettings._DEFAULT_MAX_TOURNAMENT_SIZE + "]");
+		assertEquals((dftString + GPSettings._TOURNAMENT_SIZE), Long.parseLong(GPSettings._DEFAULT_MAX_TOURNAMENT_SIZE), GPSettings.getTournamentSize().longValue());
+		
+		// Test for Updated Settings (any retrieval after a setter has been invoked should retrieve the new value)
+		Integer newSettingValue = new Integer(12);
+		GPSettings.setTournamentSize(newSettingValue);
+		toLog.info(updString + GPSettings._TOURNAMENT_SIZE + ": " + GPSettings.getTournamentSize() + "  [Compare=" + newSettingValue + "]");
+		assertEquals((updString + GPSettings._TOURNAMENT_SIZE), newSettingValue.longValue(), GPSettings.getTournamentSize().longValue());
+	}
+
+	@Test
 	public void testGetMaxHtOfInitTree() {
 		// Test the Default Settings (first retrieval should use default)
 		toLog.info(dftString + GPSettings._SUBTREE_HEIGHT + ": " + GPSettings.getMaxHtOfInitTree() + "  [Compare=" + GPSettings._DEFAULT_MAX_SUBTREE_HEIGHT + "]");
@@ -205,10 +232,23 @@ public class SettingsTest {
 		assertEquals((dftString + GPSettings._GENERATION_METHOD), GPSettings._DEFAULT_GENERATION_METHOD, GPSettings.getGenerationMethod());
 		
 		// Test for Updated Settings (any retrieval after a setter has been invoked should retrieve the new value)
-		String newSettingValue = new String("RANDOM");
-		GPSettings.setGenerationMethod(GenerationMethod.RANDOM);
+		String newSettingValue = new String("RAMPED_HALF_AND_HALF");
+		GPSettings.setGenerationMethod(GenerationMethod.RAMPED_HALF_AND_HALF);
 		toLog.info(updString + GPSettings._GENERATION_METHOD + ": " + GPSettings.getGenerationMethod() + "  [Compare=" + newSettingValue + "]");
 		assertEquals((updString + GPSettings._GENERATION_METHOD), newSettingValue, GPSettings.getGenerationMethod());
+	}
+
+	@Test
+	public void testGetReproductionMethod() {
+		// Test the Default Settings (first retrieval should use default)
+		toLog.info(dftString + GPSettings._REPRODUCTION_METHOD + ": " + GPSettings.getReproductionMethod() + "  [Compare=" + GPSettings._DEFAULT_REPRODUCTION_METHOD + "]");
+		assertEquals((dftString + GPSettings._REPRODUCTION_METHOD), GPSettings._DEFAULT_REPRODUCTION_METHOD, GPSettings.getReproductionMethod());
+		
+		// Test for Updated Settings (any retrieval after a setter has been invoked should retrieve the new value)
+		String newSettingValue = new String("TOURNAMENT_SELECTION");
+		GPSettings.setReproductionMethod(ReproductionMethod.TOURNAMENT_SELECTION);
+		toLog.info(updString + GPSettings._REPRODUCTION_METHOD + ": " + GPSettings.getReproductionMethod() + "  [Compare=" + newSettingValue + "]");
+		assertEquals((updString + GPSettings._REPRODUCTION_METHOD), newSettingValue, GPSettings.getReproductionMethod());
 	}
 
 	@Test

@@ -8,7 +8,7 @@ import edu.stthomas.seis610.gp.TrainingData;
 import edu.stthomas.seis610.tree.BinaryTreeNode.NodeType;
 import edu.stthomas.seis610.util.GPException;
 
-public class GeneticProgrammingTree extends BinaryTree {
+public class GeneticProgrammingTree extends BinaryTree implements Comparable<GeneticProgrammingTree> {
 	protected FitnessDatum xFitness = new FitnessDatum();
 	protected Vector<TrainingData> xTrainingData;
 
@@ -107,7 +107,7 @@ public class GeneticProgrammingTree extends BinaryTree {
 			Integer randOperatorPos = GPSettings.getRandomInt(GPSettings.getOperators().size());
 			aNode.setData(GPSettings.getOperators().elementAt(randOperatorPos));
 		}
-		this.getRoot().resetTreeNodeInvalid();
+		this.reset();
 	}
 
 	/**
@@ -147,7 +147,7 @@ public class GeneticProgrammingTree extends BinaryTree {
 
 		// Reset the cached information stored about this expression node tree since we have modified it and it may no
 		// longer be valid.
-		this.getRoot().resetTreeNodeInvalid();
+		this.reset();
 	}
 
 	public void crossOver(GeneticProgrammingTree aGPT) {
@@ -228,8 +228,8 @@ public class GeneticProgrammingTree extends BinaryTree {
 				bNode.getRightChild().setNodeType(NodeType.RIGHT);
 				bNode.getRightChild().setParent(bNode);
 			}
-			this.getRoot().resetTreeNodeInvalid();
-			aGPT.getRoot().resetTreeNodeInvalid();
+			this.reset();
+			aGPT.reset();
 		} catch (GPException e) {
 			e.printStackTrace();
 		}
@@ -241,5 +241,10 @@ public class GeneticProgrammingTree extends BinaryTree {
 		newClone.setFitness((FitnessDatum) getFitness().clone());
 
 		return newClone;
+	}
+
+	@Override
+	public int compareTo(GeneticProgrammingTree otherGPT) {
+		return this.getFitness().compareTo(otherGPT.getFitness());
 	}
 }
