@@ -1,6 +1,7 @@
 package edu.stthomas.seis610.gp;
 
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
@@ -12,6 +13,7 @@ import edu.stthomas.seis610.util.GPSimpleFormatter;
 class GPMain extends java.lang.Thread {
 	private static final Logger Log = Logger.getLogger("Global");
 	private GPGeneration xGeneration;
+	private static long xStartTime = System.currentTimeMillis();
 
 	/**
 	 * @param args
@@ -19,7 +21,7 @@ class GPMain extends java.lang.Thread {
 	static volatile boolean Stop = false;
 
 	public static void main(String args[]) throws InterruptedException {
-		
+
 		// Specify to only use a simple (text) formatter for the logging.
 		Handler myHandler = new ConsoleHandler();
 		myHandler.setFormatter(new GPSimpleFormatter());
@@ -76,8 +78,16 @@ class GPMain extends java.lang.Thread {
 						+ " fitness=" + currentBestIndividual.getFitness() + "]  " + currentBestIndividual.toString());
 
 			}
-			Log.info("\nBEST INDIVIDUAL FOUND!!!\nGeneration " + generationCount + ": [height=" + currentBestIndividual.getHeight()
-					+ " fitness=" + currentBestIndividual.getFitness() + " isValid=" + currentBestIndividual.isTreeValid() + "]  \n" + currentBestIndividual.toString());
+			long timeElapsed = System.currentTimeMillis() - xStartTime;
+
+			Log.info("\nBEST INDIVIDUAL FOUND!!!\nGeneration " + generationCount + ": [height="
+					+ currentBestIndividual.getHeight() + " fitness=" + currentBestIndividual.getFitness()
+					+ " isValid=" + currentBestIndividual.isTreeValid() + "]  \n" + currentBestIndividual.toString());
+			Log.info(String.format("It took %d minutes, %d seconds and %d milliseconds to find the best individual!",
+					TimeUnit.MILLISECONDS.toMinutes(timeElapsed),
+					(TimeUnit.MILLISECONDS.toSeconds(timeElapsed) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS
+							.toMinutes(timeElapsed))), (TimeUnit.MILLISECONDS.toMillis(timeElapsed) - TimeUnit.MINUTES
+							.toMillis(TimeUnit.MILLISECONDS.toMinutes(timeElapsed)))));
 			Log.info("End of GP Program...");
 		} catch (GPException e) {
 			Log.severe("Problem encountered during main line processing: " + e.getMessage());

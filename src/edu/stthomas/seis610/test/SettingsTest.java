@@ -8,6 +8,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -32,6 +33,15 @@ public class SettingsTest {
 		toLog.setUseParentHandlers(false);
 	}
 
+	@Before
+	public void initialize() throws Exception {
+		/*
+		 * Resetting the Random Seed before each test allows us a way to predict the behavior of the random number
+		 * generator and generate very predictable expression trees regardless of which order the tests are ran.
+		 */
+		GPSettings.setRandomSeed("12345");
+	}
+
 	@Test
 	public void testGetMutationProbability() {
 		// Test the Default Settings (first retrieval should use default)
@@ -43,19 +53,6 @@ public class SettingsTest {
 		GPSettings.setMutationProbability(newSettingValue);
 		toLog.info(updString + GPSettings._MUTATION_PROBABILITY + ": " + GPSettings.getMutationProbability() + "  [Compare=" + newSettingValue + "]");
 		assertEquals((updString + GPSettings._MUTATION_PROBABILITY), newSettingValue, GPSettings.getMutationProbability(), dftDelta);
-	}
-
-	@Test
-	public void testGetFitnessProbability() {
-		// Test the Default Settings (first retrieval should use default)
-		toLog.info(dftString + GPSettings._FITNESS_PROBABILITY + ": " + GPSettings.getFitnessProbability() + "  [Compare=" + GPSettings._DEFAULT_FITNESS_PROBABILITY + "]");
-		assertEquals((dftString + GPSettings._FITNESS_PROBABILITY), Double.parseDouble(GPSettings._DEFAULT_FITNESS_PROBABILITY), GPSettings.getFitnessProbability().doubleValue(), dftDelta);
-
-		// Test for Updated Settings (any retrieval after a setter has been invoked should retrieve the new value)
-		Double newSettingValue = new Double(0.05);
-		GPSettings.setFitnessProbability(newSettingValue);
-		toLog.info(updString + GPSettings._FITNESS_PROBABILITY + ": " + GPSettings.getFitnessProbability() + "  [Compare=" + newSettingValue + "]");
-		assertEquals((updString + GPSettings._FITNESS_PROBABILITY), newSettingValue, GPSettings.getFitnessProbability(), dftDelta);
 	}
 
 	@Test
@@ -146,18 +143,16 @@ public class SettingsTest {
 	}
 
 	@Test
-	public void testGetNumCrossOvers() {
+	public void testGetMaxGenerations() {
 		// Test the Default Settings (first retrieval should use default)
-		GPSettings.setPopulationSize(Integer.parseInt(GPSettings._DEFAULT_MAX_POPULATION_SIZE));//Restore just in case it has already been updated
-		Integer defaultNumberOfCrossOvers = GPSettings.getPopulationSize() / GPSettings._DEFAULT_CROSSOVER_RATIO;
-		toLog.info(dftString + GPSettings._CROSSOVER_SIZE + ": " + GPSettings.getNumCrossOvers() + "  [Compare=" + defaultNumberOfCrossOvers + "]");
-		assertEquals((dftString + GPSettings._CROSSOVER_SIZE), defaultNumberOfCrossOvers.longValue(), GPSettings.getNumCrossOvers().longValue());
-
+		toLog.info(dftString + GPSettings._MAX_GENERATIONS + ": " + GPSettings.getMaxGenerations() + "  [Compare=" + GPSettings._DEFAULT_MAX_GENERATIONS + "]");
+		assertEquals((dftString + GPSettings._MAX_GENERATIONS), Long.parseLong(GPSettings._DEFAULT_MAX_GENERATIONS), GPSettings.getMaxGenerations().longValue());
+		
 		// Test for Updated Settings (any retrieval after a setter has been invoked should retrieve the new value)
-		Integer newSettingValue = new Integer(44);
-		GPSettings.setNumCrossOvers(newSettingValue);
-		toLog.info(updString + GPSettings._CROSSOVER_SIZE + ": " + GPSettings.getNumCrossOvers() + "  [Compare=" + newSettingValue + "]");
-		assertEquals((updString + GPSettings._CROSSOVER_SIZE), newSettingValue.longValue(), GPSettings.getNumCrossOvers().longValue());
+		Integer newSettingValue = new Integer(10000);
+		GPSettings.setMaxGenerations(newSettingValue);
+		toLog.info(updString + GPSettings._MAX_GENERATIONS + ": " + GPSettings.getMaxGenerations() + "  [Compare=" + newSettingValue + "]");
+		assertEquals((updString + GPSettings._MAX_GENERATIONS), newSettingValue.longValue(), GPSettings.getMaxGenerations().longValue());
 	}
 
 	@Test

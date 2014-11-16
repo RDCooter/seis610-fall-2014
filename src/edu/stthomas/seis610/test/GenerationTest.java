@@ -45,7 +45,7 @@ public class GenerationTest {
 		 * Resetting the Random Seed before each test allows us a way to predict the behavior of the random number
 		 * generator and generate very predictable expression trees regardless of which order the tests are ran.
 		 */
-		GPSettings.setRandomSeed(12345L);
+		GPSettings.setRandomSeed("12345");
 		GPSettings.setPopulationSize(3);
 	}
 
