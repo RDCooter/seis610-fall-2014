@@ -35,7 +35,7 @@ public class GPSimpleFormatter extends Formatter {
 	public String format(LogRecord r) {
 
         return "[" + myDateTimeFormat.format(new Date(r.getMillis())) + "] " + r.getLevel() + ": <"
-				+ r.getSourceClassName() + "::" + r.getSourceMethodName() + "> " + r.getMessage()
+				/*+ r.getSourceClassName() + "::" */+ r.getSourceMethodName() + "> " + r.getMessage()
 				+ (r.getThrown() == null ? "" : r.getThrown()) + "\n";
 	}
 

@@ -172,10 +172,26 @@ public class GPGeneration {
 
 	public GPGeneration nextGeneration() throws GPException {
 		GPGeneration nextGeneration = new GPGeneration();
+
+		// Always bring across the best individual as the first element in the next generation without the worry about
+		// any mutation at the end of the generation of the population for the next generation.
+		nextGeneration.getPopulation().add(0, getBestIndividual());
+
 		nextGeneration.getPopulation().addAll(reproduction());
 		nextGeneration.getPopulation().addAll(crossover());
 		nextGeneration.mutate();
+
 		nextGeneration.scoreFitness();
+
+		if (getBestIndividual().getFitness().compareTo(nextGeneration.getBestIndividual().getFitness()) < 0) {
+			Log.warning("\n\nNEXT GENERATION DEGRADES THE CURRENT ONE!");
+			Log.warning("Current BestIndividual: " + fornmatIndividual(getBestIndividual()));
+			Log.warning("NextGen BestIndividual: " + fornmatIndividual(nextGeneration.getBestIndividual()));
+
+			Log.warning("\n\nCurrent Generation: \n" + this.toString());
+			Log.warning("\n\nNextGen Generation: \n" + nextGeneration.toString());
+
+		}
 		return nextGeneration;
 	}
 
@@ -221,9 +237,9 @@ public class GPGeneration {
 		} else if (reproductionMethod == ReproductionMethod.TOURNAMENT_SELECTION) {
 			// When dealing with a tournament selection technique, we should still bring along the current best
 			// individual to the next generation.
-//			xReproducedIndividuals.add(getBestIndividual());
-//			reproductionCount = reproductionCount - 1;
-			
+			// xReproducedIndividuals.add(getBestIndividual());
+			// reproductionCount = reproductionCount - 1;
+
 			// Use a tournament selection technique to find the fittest individuals from a number of different random
 			// selections (tournaments) of different individuals.
 			for (int i = 0; i < reproductionCount; i++) {
@@ -399,11 +415,13 @@ public class GPGeneration {
 		outputBuf.append("\n");
 		int mutateCount = (int) (getPopulation().size() * GPSettings.getMutationProbability());
 		for (int i = 0; i < mutateCount; i++) {
-			Integer mutateIndex = GPSettings.getRandomInt(getPopulation().size());
+			// Always skip entry zero in the population!! Make sure that the best individual from the last run is
+			// brought along untouched!
+			Integer mutateIndex = GPSettings.getRandomInt(getPopulation().size() - 1) + 1;
+			// Integer mutateIndex = GPSettings.getRandomInt(getPopulation().size());
 			try {
 				outputBuf.append("Mutate BEFORE=" + fornmatIndividual(mutateIndex));
-				// getPopulation().elementAt(mutateIndex).mutate();
-				getPopulation().elementAt(mutateIndex).mutate_new();
+				getPopulation().elementAt(mutateIndex).mutate();
 				outputBuf.append("  AFTER=" + fornmatIndividual(mutateIndex) + "\n");
 			} catch (GPException e) {
 				// When an error occurs during the evaluation, then simply add in the biggest standardized fitness value
@@ -428,6 +446,20 @@ public class GPGeneration {
 		outputBuf.append(" height=" + xPopulation.elementAt(aIndividualIndex).getHeight());
 		outputBuf.append(" fitness=" + xPopulation.elementAt(aIndividualIndex).getFitness());
 		outputBuf.append("]:  " + xPopulation.elementAt(aIndividualIndex).toString());
+		return outputBuf.toString();
+	}
+
+	/**
+	 * Convenience method to help format the individual population entries for output.
+	 * 
+	 * @param aIndividualIndex the index into the list of individuals to use as the source for the output
+	 * @return the formatted string of the individual
+	 */
+	private String fornmatIndividual(GeneticProgrammingTree aIndividual) {
+		StringBuffer outputBuf = new StringBuffer();
+		outputBuf.append("[: height=" + aIndividual.getHeight());
+		outputBuf.append(" fitness=" + aIndividual.getFitness());
+		outputBuf.append("]:  " + aIndividual.toString());
 		return outputBuf.toString();
 	}
 

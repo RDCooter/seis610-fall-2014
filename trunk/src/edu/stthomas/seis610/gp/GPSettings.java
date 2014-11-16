@@ -42,12 +42,10 @@ public class GPSettings extends Properties {
 	 */
 	public final static String _RANDOM_SEED = new String("randomSeed");
 	public final static String _MUTATION_PROBABILITY = new String("mutationProbability");
-	public final static String _FITNESS_PROBABILITY = new String("fitnessProbability");
 	public final static String _CROSSOVER_PROBABILITY = new String("crossoverProbability");
 	public final static String _FITNESS_MARGIN_ERROR = new String("fitnessMarginOfError");
 	public final static String _OPERATORS = new String("operators");
 	public final static String _OPERANDS = new String("operands");
-	public final static String _CROSSOVER_SIZE = new String("numberOfCrossOvers");
 	public final static String _MAX_GENERATIONS = new String("maxGenerations");
 	public final static String _POPULATION_SIZE = new String("populationSize");
 	public final static String _TOURNAMENT_SIZE = new String("tournamentSize");
@@ -61,14 +59,12 @@ public class GPSettings extends Properties {
 	/**
 	 * Define Default (Constant) Values for the Settings
 	 */
-	public final static String _DEFAULT_RANDOM_SEED = new String("12345");
+	public final static String _DEFAULT_RANDOM_SEED = new String("null");
 	public final static String _DEFAULT_MUTATION_PROBABILITY = new String("0.05");
-	public final static String _DEFAULT_FITNESS_PROBABILITY = new String("0.50");
 	public final static String _DEFAULT_CROSSOVER_PROBABILITY = new String("0.90");
-	public final static String _DEFAULT_FITNESS_MARGIN_ERROR = new String("0.01");
+	public final static String _DEFAULT_FITNESS_MARGIN_ERROR = new String("0.001");
 	public final static String _DEFAULT_OPERATORS = new String("ADD,SUB,MUL,DIV");
 	public final static String _DEFAULT_OPERANDS = new String("-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,x");
-	public final static Integer _DEFAULT_CROSSOVER_RATIO = new Integer(4);
 	public final static String _DEFAULT_MAX_GENERATIONS = new String("500000");
 	public final static String _DEFAULT_MAX_POPULATION_SIZE = new String("100");
 	public final static String _DEFAULT_MAX_TOURNAMENT_SIZE = new String("6");
@@ -77,7 +73,9 @@ public class GPSettings extends Properties {
 	public final static String _DEFAULT_MAX_MUTATION_HEIGHT = new String("2");
 	public final static String _DEFAULT_GENERATION_METHOD = new String("RAMPED_HALF_AND_HALF");
 	public final static String _DEFAULT_REPRODUCTION_METHOD = new String("TOURNAMENT_SELECTION");
-	public final static String _DEFAULT_INPUT_TRAINING_DATA = new String("-5,-4,-3,-2,-1,0,1,2,3,4,5");
+//	public final static String _DEFAULT_INPUT_TRAINING_DATA = new String("-5,-4,-3,-2,-1,0,1,2,3,4,5");
+	public final static String _DEFAULT_INPUT_TRAINING_DATA = new String("20001,15313.5,3961.5,1105.5,3,1.5,365.5,4803,7939,147425.5");
+
 
 	/**
 	 * Private default constructor for singleton instance of this class.
@@ -141,20 +139,6 @@ public class GPSettings extends Properties {
 	 */
 	public static void setMutationProbability(Double aMutationProbability) {
 		setDoubleProperty(_MUTATION_PROBABILITY, aMutationProbability);
-	}
-
-	/**
-	 * @return the fitness probability ratio value for the GP algorithm
-	 */
-	public static Double getFitnessProbability() {
-		return getInstance().getDoubleProperty(_FITNESS_PROBABILITY, _DEFAULT_FITNESS_PROBABILITY);
-	}
-
-	/**
-	 * @param aFitnessProbability the new fitness probability ratio value for this property
-	 */
-	public static void setFitnessProbability(Double aFitnessProbability) {
-		setDoubleProperty(_FITNESS_PROBABILITY, aFitnessProbability);
 	}
 
 	/**
@@ -231,32 +215,28 @@ public class GPSettings extends Properties {
 	 * @return the initial random seed value for GP algorithms
 	 */
 	private Long getRandomSeed() {
-		return getLongProperty(_RANDOM_SEED, _DEFAULT_RANDOM_SEED);
+		if (_DEFAULT_RANDOM_SEED.compareTo("null") == 0) {
+			return null; 
+		}
+		else {
+			return getLongProperty(_RANDOM_SEED, _DEFAULT_RANDOM_SEED);			
+		}
 	}
 
 	/**
 	 * @param aRandomSeedValue the new random seed value for this property
 	 */
-	public static void setRandomSeed(Long aRandomSeedValue) {
+	public static void setRandomSeed(String aRandomSeedValue) {
 		// Make sure that we update the already instantiated random number generator with the new seed value along with
 		// updating the property settings.
-		getInstance().xRandomGenerator.setSeed(aRandomSeedValue);
-		setLongProperty(_RANDOM_SEED, aRandomSeedValue);
-	}
-
-	/**
-	 * @return the initial number of cross over trees for the GP algorithms
-	 */
-	public static Integer getNumCrossOvers() {
-		Integer defaultNumberOfCrossOvers = GPSettings.getPopulationSize() / _DEFAULT_CROSSOVER_RATIO;
-		return getInstance().getIntProperty(_CROSSOVER_SIZE, defaultNumberOfCrossOvers.toString());
-	}
-
-	/**
-	 * @param aNumCrossOvers the new number of cross overs value for this property
-	 */
-	public static void setNumCrossOvers(Integer aNumCrossOvers) {
-		setIntProperty(_CROSSOVER_SIZE, aNumCrossOvers);
+		if (aRandomSeedValue.compareTo("null") == 0) {
+			// Reset the random number generator to make sure that the seed is the default null value.
+			getInstance().xRandomGenerator = new Random();			
+		}
+		else {
+			getInstance().xRandomGenerator.setSeed(Long.parseLong(aRandomSeedValue));;						
+		}
+		setStringProperty(_RANDOM_SEED, aRandomSeedValue);
 	}
 
 	/**
@@ -468,38 +448,6 @@ public class GPSettings extends Properties {
 	 * @param aValue the numeric (integer) value for this property
 	 */
 	private static void setIntProperty(String aKey, Integer aValue) {
-		try {
-			try {
-				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));
-			} catch (IOException e) {
-				System.err.println("IOException: Unable to open output properties file [" + xInitialPropertiesFile
-						+ "] for GPSettings.");
-			}
-
-			/*
-			 * Update the singleton properties object with the new value for the key and re-write all of the current
-			 * properties into the output properties file so that it will always show the current state of the
-			 * properties (if not simply the defaults).
-			 */
-			getInstance().setProperty(aKey, "" + aValue);
-			getInstance().store(xOutputStream, null);
-
-			xOutputStream.close();
-		} catch (IOException e) {
-			System.err.println("IOException: Unable to store " + aKey + "=" + aValue + " into the properties file ["
-					+ xInitialPropertiesFile + "].");
-		}
-	}
-
-	/**
-	 * Update the properties object with the new value for the passed in property. Additionally continuously update the
-	 * output properties file with the current settings for ALL of the current properties that are being used within
-	 * this properties object.
-	 * 
-	 * @param aKey the property name (key) to update in the properties object/file
-	 * @param aValue the numeric (long integer) value for this property
-	 */
-	private static void setLongProperty(String aKey, Long aValue) {
 		try {
 			try {
 				xOutputStream = new FileOutputStream(new File(xInitialPropertiesFile));

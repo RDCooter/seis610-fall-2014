@@ -96,11 +96,18 @@ public abstract class BinaryTree implements Cloneable {
 			return aNode.toString();
 		} else {
 			output = new StringBuffer();
+			if (aNode.getNumberOfChildren()==1) {
+				// Operator first for 1 operand operators.
+				output.append(aNode.toString());				
+			}
 			if (aNode != getRoot())
 				output.append("(");
 			output.append(this.toString(aNode.getLeftChild()));
-			output.append(aNode.toString());
-			output.append(this.toString(aNode.getRightChild()));
+			if (aNode.getNumberOfChildren()==2) {
+				// Binary operators...
+				output.append(aNode.toString());
+				output.append(this.toString(aNode.getRightChild()));
+			}
 			if (aNode != getRoot())
 				output.append(")");
 		}
