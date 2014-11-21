@@ -36,7 +36,7 @@ public class GPGeneration {
 	private Vector<GeneticProgrammingTree> xPopulation;
 
 	private Vector<GeneticProgrammingTree> xCrossoverIndividuals;
-	private Vector<GeneticProgrammingTree> xReproducedIndividuals;
+	private Vector<GeneticProgrammingTree> xWorkingSetOfIndividuals;
 	private Vector<GeneticProgrammingTree> xTournamentIndividuals;
 
 	/**
@@ -48,7 +48,7 @@ public class GPGeneration {
 		xPopulation = new Vector<GeneticProgrammingTree>(populationSize);
 
 		xCrossoverIndividuals = new Vector<GeneticProgrammingTree>(getCrossoverCount());
-		xReproducedIndividuals = new Vector<GeneticProgrammingTree>(getReproductionCount());
+		xWorkingSetOfIndividuals = new Vector<GeneticProgrammingTree>(getReproductionCount());
 		xTournamentIndividuals = new Vector<GeneticProgrammingTree>(GPSettings.getTournamentSize());
 	}
 
@@ -72,27 +72,16 @@ public class GPGeneration {
 		int maxPopulationSize = GPSettings.getPopulationSize();
 		int maxInitialHeight = GPSettings.getMaxHtOfInitTree();
 		GenerationMethod genMethod = GenerationMethod.valueOf(GPSettings.getGenerationMethod());
-		int batchCount;
 
 		// Get the type of subtree generation that we are supposed to perform from the Settings and invoke the correct
 		// generation method(s) based upon the selection.
 		switch (genMethod) {
 		case RAMPED_HALF_AND_HALF:
-			/*
-			 * For the Ramped-Half-and-Half, we need to calculate the batchCount to make sure it takes into account that
-			 * we will be processing both the Full and Grow methods for each pass through the loop (hence the * 2).
-			 */
-			batchCount = Math.max((maxPopulationSize / ((maxInitialHeight - 1) * 2)), 1);
-			for (int rampedHeight = 2; rampedHeight <= maxInitialHeight; rampedHeight++) {
-				for (int i = 0; i < batchCount; i++) {
-					xPopulation.add(GPTreeFactory.generateFullTree(rampedHeight));
-					xPopulation.add(GPTreeFactory.generateGrowTree(rampedHeight));
-				}
-			}
+			xPopulation.addAll(generateRampedHalfAndHalf(maxPopulationSize, maxInitialHeight));
 			break;
 		case RAMPED_FULL:
 		case RAMPED_GROW:
-			batchCount = Math.max((maxPopulationSize / (maxInitialHeight - 1)), 1);
+			int batchCount = Math.max((maxPopulationSize / (maxInitialHeight - 1)), 1);
 			for (int rampedHeight = 2; rampedHeight <= maxInitialHeight; rampedHeight++) {
 				for (int i = 0; i < batchCount; i++) {
 					if (genMethod == GenerationMethod.RAMPED_FULL) {
@@ -120,7 +109,7 @@ public class GPGeneration {
 		scoreFitness();
 
 		Log.info("Population initialized [method=" + genMethod + "]:  ActualSize=" + xPopulation.size()
-				+ "  TargetSize=" + maxPopulationSize);
+				+ "  TargetSize=" + maxPopulationSize + "  TournamentSize=" + GPSettings.getTournamentSize());
 		Log.config("Initial Population:  \n" + this);
 	}
 
@@ -170,28 +159,58 @@ public class GPGeneration {
 		return Math.max((int) Math.round(GPSettings.getCrossoverProbability() * GPSettings.getPopulationSize()), 2);
 	}
 
-	public GPGeneration nextGeneration() throws GPException {
+	private Vector<GeneticProgrammingTree> generateRampedHalfAndHalf(int aPopulationSize, int aMaxTreeHeight) {
+		/*
+		 * For the Ramped-Half-and-Half, we need to calculate the batchCount to make sure it takes into account that we
+		 * will be processing both the Full and Grow methods for each pass through the loop (hence the * 2).
+		 */
+		xWorkingSetOfIndividuals.clear(); // Clear the cached variable
+		int batchCount = Math.max((aPopulationSize / ((aMaxTreeHeight - 1) * 2)), 1);
+		for (int rampedHeight = 2; rampedHeight <= aMaxTreeHeight; rampedHeight++) {
+			for (int i = 0; i < batchCount; i++) {
+				xWorkingSetOfIndividuals.add(GPTreeFactory.generateFullTree(rampedHeight));
+				xWorkingSetOfIndividuals.add(GPTreeFactory.generateGrowTree(rampedHeight));
+			}
+		}
+		return xWorkingSetOfIndividuals;
+	}
+
+	public GPGeneration nextGeneration(boolean aInjectNewDNA) throws GPException {
 		GPGeneration nextGeneration = new GPGeneration();
 
-		// Always bring across the best individual as the first element in the next generation without the worry about
-		// any mutation at the end of the generation of the population for the next generation.
-		nextGeneration.getPopulation().add(0, getBestIndividual());
+		/*
+		 * Always bring across an un-mutated version of the best individual in the next generation without the worry
+		 * about any mutation at the end of the generation of the population for the next generation. This is why we
+		 * clone the best individual now rather than risk any changes to a possible reference to this individual in the
+		 * following logic.
+		 */
+		GeneticProgrammingTree cloneOfBestIndividual = (GeneticProgrammingTree) getBestIndividual().clone();
 
-		nextGeneration.getPopulation().addAll(reproduction());
+		/*
+		 * Determine if we need to perform simple reproduction or if we have worked ourselves into a corner and we need
+		 * to inject some new DNA into the population. When injecting new DNA we want the biggest sample variety we can
+		 * generate so use the Ramped_Half_And_Half and set the tree height to as tall as possible.
+		 */
+		if (!aInjectNewDNA) {
+			// Use reproduction to add individuals from the existing population into the next generation.
+			nextGeneration.getPopulation().addAll(reproduction());
+
+		} else {
+			// Generate new individuals with no relationship to the existing generation into the next generation.
+			int newPopulationCount = getReproductionCount();
+			int newPopulationHeight = GPSettings.getMaxHtOfCrossoverTree();
+			nextGeneration.getPopulation().addAll(
+					generateRampedHalfAndHalf(getReproductionCount(), GPSettings.getMaxHtOfCrossoverTree()));
+			Log.warning("Population injected with new DNA [method=RAMPED_HALF_AND_HALF]:  ActualSize=" + nextGeneration.getPopulation().size()
+					+ "  TargetSize=" + newPopulationCount + "  MaxHeight=" + newPopulationHeight);
+		}
 		nextGeneration.getPopulation().addAll(crossover());
 		nextGeneration.mutate();
 
+		// Make sure an un-mutated version of the current best individual gets added to the next generation.
+		nextGeneration.getPopulation().add(cloneOfBestIndividual);
+
 		nextGeneration.scoreFitness();
-
-		if (getBestIndividual().getFitness().compareTo(nextGeneration.getBestIndividual().getFitness()) < 0) {
-			Log.warning("\n\nNEXT GENERATION DEGRADES THE CURRENT ONE!");
-			Log.warning("Current BestIndividual: " + fornmatIndividual(getBestIndividual()));
-			Log.warning("NextGen BestIndividual: " + fornmatIndividual(nextGeneration.getBestIndividual()));
-
-			Log.warning("\n\nCurrent Generation: \n" + this.toString());
-			Log.warning("\n\nNextGen Generation: \n" + nextGeneration.toString());
-
-		}
 		return nextGeneration;
 	}
 
@@ -226,28 +245,22 @@ public class GPGeneration {
 	public Vector<GeneticProgrammingTree> reproduction() {
 		ReproductionMethod reproductionMethod = ReproductionMethod.valueOf(GPSettings.getReproductionMethod());
 		int reproductionCount = getReproductionCount();
-		xReproducedIndividuals.clear(); // Clear the cached variable
+		xWorkingSetOfIndividuals.clear(); // Clear the cached variable
 		if (reproductionMethod == ReproductionMethod.NATURAL_SELECTION) {
 			// Use natural selection to extract the Top-N individuals from the population.
-
 			List<GeneticProgrammingTree> lst = naturalSelection(reproductionCount);
 			Log.finer("Natural Selection [size=" + lst.size() + "]:  Tree=" + lst);
 
-			xReproducedIndividuals.addAll(lst);
+			xWorkingSetOfIndividuals.addAll(lst);
 		} else if (reproductionMethod == ReproductionMethod.TOURNAMENT_SELECTION) {
-			// When dealing with a tournament selection technique, we should still bring along the current best
-			// individual to the next generation.
-			// xReproducedIndividuals.add(getBestIndividual());
-			// reproductionCount = reproductionCount - 1;
-
 			// Use a tournament selection technique to find the fittest individuals from a number of different random
 			// selections (tournaments) of different individuals.
 			for (int i = 0; i < reproductionCount; i++) {
-				xReproducedIndividuals.add(tournamentSelection());
+				xWorkingSetOfIndividuals.add(tournamentSelection());
 			}
 		}
 
-		return xReproducedIndividuals;
+		return xWorkingSetOfIndividuals;
 	}
 
 	/**
@@ -384,9 +397,7 @@ public class GPGeneration {
 		}
 
 		// Check the resulting trees to determine if they are too large and they exceed the height limit from the
-		// settings. If so then simply use the original parent instead.
-		// aCrosssoverList.add((offspring1.getHeight() <= GPSettings.getMaxHtOfCrossoverTree())? offspring1 : aParentX);
-		// aCrosssoverList.add((offspring2.getHeight() <= GPSettings.getMaxHtOfCrossoverTree())? offspring2 : aParentY);
+		// settings. If so then simply generate a new tree to take their place instead.
 		if (offspring1.getHeight() <= GPSettings.getMaxHtOfCrossoverTree()) {
 			aCrosssoverList.add(offspring1);
 		} else {
@@ -417,8 +428,8 @@ public class GPGeneration {
 		for (int i = 0; i < mutateCount; i++) {
 			// Always skip entry zero in the population!! Make sure that the best individual from the last run is
 			// brought along untouched!
-			Integer mutateIndex = GPSettings.getRandomInt(getPopulation().size() - 1) + 1;
-			// Integer mutateIndex = GPSettings.getRandomInt(getPopulation().size());
+			// Integer mutateIndex = GPSettings.getRandomInt(getPopulation().size() - 1) + 1;
+			Integer mutateIndex = GPSettings.getRandomInt(getPopulation().size());
 			try {
 				outputBuf.append("Mutate BEFORE=" + fornmatIndividual(mutateIndex));
 				getPopulation().elementAt(mutateIndex).mutate();
@@ -446,20 +457,6 @@ public class GPGeneration {
 		outputBuf.append(" height=" + xPopulation.elementAt(aIndividualIndex).getHeight());
 		outputBuf.append(" fitness=" + xPopulation.elementAt(aIndividualIndex).getFitness());
 		outputBuf.append("]:  " + xPopulation.elementAt(aIndividualIndex).toString());
-		return outputBuf.toString();
-	}
-
-	/**
-	 * Convenience method to help format the individual population entries for output.
-	 * 
-	 * @param aIndividualIndex the index into the list of individuals to use as the source for the output
-	 * @return the formatted string of the individual
-	 */
-	private String fornmatIndividual(GeneticProgrammingTree aIndividual) {
-		StringBuffer outputBuf = new StringBuffer();
-		outputBuf.append("[: height=" + aIndividual.getHeight());
-		outputBuf.append(" fitness=" + aIndividual.getFitness());
-		outputBuf.append("]:  " + aIndividual.toString());
 		return outputBuf.toString();
 	}
 
