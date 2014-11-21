@@ -128,6 +128,17 @@ public class GPSettings extends Properties {
 	}
 
 	/**
+	 * Recycle the random generator associated with this settings.
+	 */
+	public static void recycleRandomGenerator() {
+		getInstance().xRandomGenerator = new Random();
+		Long randomSeed = getInstance().getRandomSeed();
+		if (randomSeed != null) {
+			getInstance().xRandomGenerator.setSeed(randomSeed);
+		}
+	}
+
+	/**
 	 * @return the mutation probability ratio value for the GP algorithm
 	 */
 	public static Double getMutationProbability() {
