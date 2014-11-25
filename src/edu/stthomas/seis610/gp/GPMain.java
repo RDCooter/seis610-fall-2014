@@ -26,8 +26,8 @@ class GPMain extends java.lang.Thread {
 	private static final String COMMA = ",", NEWLINE = "\n";
 	private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 	private static final int MAX_GP_TIME = 1000 * 60 * 15; // 15 minutes
-	private static final int MAX_GP_SAMPLES_TIME = 1000 * 60 * 180; // 180 minutes
-	private static final int MAX_SAMPLE_SIZE = 10;
+	private static final int MAX_GP_SAMPLES_TIME = 1000 * 60 * 1200; // 180 minutes
+	private static final int MAX_SAMPLE_SIZE = 100;
 	private static final int RESTART_POPULATION_THRESHOLD = 10;
 
 	private GPGeneration xGeneration;
