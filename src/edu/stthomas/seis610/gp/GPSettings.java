@@ -66,7 +66,7 @@ public class GPSettings extends Properties {
 	public final static String _DEFAULT_OPERATORS = new String("ADD,SUB,MUL,DIV");
 	public final static String _DEFAULT_OPERANDS = new String("-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,x");
 	public final static String _DEFAULT_MAX_GENERATIONS = new String("500000");
-	public final static String _DEFAULT_MAX_POPULATION_SIZE = new String("100");
+	public final static String _DEFAULT_MAX_POPULATION_SIZE = new String("400");
 	public final static String _DEFAULT_MAX_TOURNAMENT_SIZE = new String("6");
 	public final static String _DEFAULT_MAX_SUBTREE_HEIGHT = new String("4");
 	public final static String _DEFAULT_MAX_CROSSOVER_HEIGHT = new String("10");
