@@ -1,0 +1,1 @@
+This Project used Genetic Programming to arrive to a function close enough to a target function given by a training data.
